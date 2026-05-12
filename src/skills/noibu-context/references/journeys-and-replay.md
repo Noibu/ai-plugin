@@ -1,37 +1,58 @@
 # Journeys & session replay
 
-Read this reference when the user asks about navigation paths, funnels, drop-off between specific pages, or when they explicitly want to watch / see / view a session replay.
+Read this reference when the user asks about the shape of multi-step journey patterns across many sessions, or when they explicitly want to watch / see / view a session replay.
 
-## noibu_JourneyPaths
+## Most "journey" questions belong in noibu_PageVisitsQuery
 
-Navigation paths AND funnel reach around an ordered sequence of URL anchors (1–15 steps). Returns paths sessions took before (backward) and/or after (forward) the matched sequence, ranked by session count, plus per-step funnel reach (`anchorStepReach`).
+Default to `noibu_PageVisitsQuery` for journey-shaped questions. The vast majority of prompts that mention "journey", "funnel", "drop-off", "navigation", "path", or "what comes after /cart" are URL-level questions that PageVisitsQuery answers directly:
 
-USE for three question types:
+- **One-hop predecessor / successor** — "what page comes after /cart", "what's the top URL before /checkout" → URL + `PREV_URL`.
+- **Drop-off / exit / abandonment** — "where do users drop off in checkout", "which pages do users exit from" → `IS_EXIT_PAGE`.
+- **Landing / entry** — "what pages do users land on", "which landing pages convert" → `IS_LANDING_PAGE`.
 
-1. **Navigation flow around a single page** — "what do users visit before/after page X":
-   - "What sequences of pages do users visit after / before /checkout?"
-   - "Show the navigation paths around the home page"
-   - "What's the most common journey from product pages to checkout?"
-   Use a single-step anchor; `anchor.mode` is moot for one step (pick either).
+If the user is asking for an aggregate (count, rate, percentage, ranking by URL) — route to `noibu_PageVisitsQuery` and stop. A URL in the prompt is not by itself a redirect signal; it may be the anchor for the shape question below. The presence of "journey" or "funnel" is not a signal either; what the user is asking for is. Load `references/page-visits.md` for field-level detail.
 
-2. **Funnel / conversion analysis** — "how many users got from A → B → C":
-   - "How many users go product → cart → checkout → confirmation?"
-   - "What's the drop-off between login and account creation?"
-   - "Where in the cart-to-purchase flow do most users abandon?"
-   Use a multi-step anchor with `anchor.mode = LOOSE`. Real funnel sessions
-   have intermediate page views; STRICT undercounts conversion.
+## noibu_TopPageGroupJourneys (narrow)
 
-3. **Direct-transition analysis** — "do users go directly from A to B":
-   - "When users hit /cart, do they immediately go to /checkout, or browse more?"
-   - "Did users follow /login → /account → /orders without detours?"
-   Use a multi-step anchor with `anchor.mode = STRICT`.
+Use ONLY when the user is asking about the SHAPE of multi-step page-CATEGORY patterns across many sessions — ranked aggregated journey shapes at the page-group level, not URLs. Concrete examples:
 
-DO NOT use for:
+- "What shapes do multi-step journeys leading into Checkout take?"
+- "What does the purchase funnel look like at a category level?"
+- "What common multi-step browsing patterns exist around the search results page?"
+- "What are the most common page-group sequences our users follow?"
 
-- Per-page traffic / engagement / web vitals → `noibu_PageVisitsQuery`
-- Session-level aggregates (conversion rate, revenue, AOV) → `noibu_QuerySessions`
-- "Where do users drop off" without specific anchor pages →
-  `noibu_PageVisitsQuery` filtered by `IS_EXIT_PAGE=true`
+Output is page-group names (e.g. `Product`, `Cart`, `Checkout`), not URLs. Ungrouped visits render as `No Page Group`. Consecutive duplicates are collapsed (`[Product, Product, Cart]` → `[Product, Cart]`).
+
+### When you use this tool, also call noibu_PageVisitsQuery in parallel
+
+The tool returns aggregated page-CATEGORY shapes — it hides the underlying URLs and intra-group depth (`[Product]` covers a session that saw one PDP and a session that saw thirty). To give a complete answer, run `noibu_PageVisitsQuery` alongside for URL-level grounding (which specific URLs make up each step, how many PDPs per session, etc.). Do not conclude on the page-group shape alone.
+
+### Page-group coverage is a prerequisite
+
+The output is only useful if the customer has configured page groups on their domain. If `forwardPaths` is dominated by the `No Page Group` sentinel — or top patterns look like `[No Page Group, No Page Group, …]` — coverage is poor. Abandon this tool for the question, answer from `noibu_PageVisitsQuery` instead, and surface the coverage gap to the user.
+
+### Always pass `minSteps = 3`
+
+The schema default is 1, but always pass 3. At 1, single-bucket bouncer shapes (`[Product]`, `[Home]`) flood the top-N and bury the funnel and conversion patterns users actually want to see. Lower only when the user explicitly asks about short / bouncer journeys.
+
+### Anchor
+
+Optional. Exactly one of:
+
+- `anchor.url` — exact URL match (paths only — `/cart`, not `https://...`).
+- `anchor.pageGroup` — page-group name. The `No Page Group` sentinel is rejected.
+
+The anchor visit's own step is NOT in either path array — the full journey is `backwardPaths` + [anchor's page-group] + `forwardPaths`.
+
+### Truncation signal
+
+`exitingSessionCount < sessionCount` (forward) or `landingSessionCount < sessionCount` (backward) means those sessions were capped by `maxDepth`. The path's length is a lower bound, not the actual journey length. Raise `maxDepth` (up to 15) if the user needs to see further.
+
+### Anti-patterns
+
+- Do not call this tool for URL-level questions — use `noibu_PageVisitsQuery`.
+- Do not call this tool for counts, rates, bounce, exit, or landing analysis — use `noibu_PageVisitsQuery`.
+- Do not pass URLs in `sessionFilters` — session-scope only (device, browser, UTM, conversion). Same shape as QuerySessions filters. `ExpressionFilter` is rejected.
 
 ## noibu_session_replay
 

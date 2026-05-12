@@ -38,8 +38,10 @@ Both query tools require `orderBy` at the `input` level — see **Query Constrai
   (LCP/CLS/INP) → `noibu_PageVisitsQuery` (load `references/page-visits.md`).
 - Quantitative click or scroll questions, or "show me the clickmap/scrollmap" →
   load `references/clickmap-scrollmap.md`.
-- Funnel / drop-off / navigation paths around specific URLs, OR an explicit
+- Multi-step journey patterns / shapes across many sessions, OR an explicit
   request to watch a session replay → load `references/journeys-and-replay.md`.
+  Note: "funnel", "drop-off", "what comes after /cart" are URL-level
+  questions — use `noibu_PageVisitsQuery` (see above).
 - Errors / bugs / crashes — only when the user EXPLICITLY asks. Load
   `references/errors.md`. Not a generic "what to fix" entrypoint.
 - Connect / disconnect / list integrations → load `references/integrations.md`.
@@ -158,7 +160,7 @@ Load exactly one reference based on the topic of the user's question. Each file 
 | Session-level analytics (conversion rate, revenue, AOV, traffic sources, bounce, search, products, time-series trends) | `references/sessions.md` |
 | Page-level analytics (per-page traffic, time on page, web vitals, landing/exit pages, visual errors, scroll depth, cohort behaviour by URL) | `references/page-visits.md` |
 | Clicks or scroll behaviour — quantitative ("how many", "top clicked", "% reaching footer") or visual ("show the clickmap/scrollmap") | `references/clickmap-scrollmap.md` |
-| User journeys, funnels, navigation paths, drop-off between specific pages, OR an explicit request to watch a session replay | `references/journeys-and-replay.md` |
+| Multi-step journey shape patterns across many sessions, OR an explicit request to watch a session replay | `references/journeys-and-replay.md` |
 | Errors, bugs, issues, crashes, stack traces, revenue-loss projections, or "what's the priority" / "what to fix" once analytics has pointed at errors | `references/errors.md` |
 | Connecting, disconnecting, listing, or checking the status of third-party integrations | `references/integrations.md` |
 | A pasted `console.noibu.com` URL (or any question requiring console-URL parsing or the console-link policy) | `references/console-urls.md` |

@@ -1,5 +1,5 @@
 {
-  "name": "noibu-mcp",
+  "name": "noibu",
   "version": "0.1.0",
   "description": "Connects Claude to the Noibu MCP server"
 }
