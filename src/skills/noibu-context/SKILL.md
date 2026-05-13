@@ -37,7 +37,7 @@ Both query tools require `orderBy` at the `input` level — see **Query Constrai
 - "which pages are slow / broken / get the most traffic", web vitals
   (LCP/CLS/INP) → `noibu_PageVisitsQuery` (load `references/page-visits.md`).
 - Quantitative click or scroll questions, or "show me the clickmap/scrollmap" →
-  load `references/visualize-page-visits.md`.
+  load `references/page-visits.md`.
 - Multi-step journey patterns / shapes across many sessions, OR an explicit
   request to watch a session replay → load `references/journeys-and-replay.md`.
   Note: "drop-off", "where do users abandon", "what comes after /cart" are
@@ -51,16 +51,20 @@ Both query tools require `orderBy` at the `input` level — see **Query Constrai
 - Connect / disconnect / list integrations → load `references/integrations.md`.
 - Pasted `console.noibu.com` URL → load `references/console-urls.md`.
 
-**Metrics vs visualization tools — both are valid, often complementary:**
+**Within page-visits — pair metrics and visual when both help. Rows assume a URL is in scope:**
 
-| User verb | Primary tool |
+| User verb | Tool |
 |---|---|
-| "How many clicks on …", "which button …", "top clicked …" | `noibu_PageVisitsQuery` |
-| "Show / view / visualize / display the clickmap" | `noibu_show_page_visits_visualization` with `visualization.clickMap` |
-| "What % scroll to …", "average scroll depth", "how many reach the bottom/footer" | `noibu_PageVisitsQuery` |
-| "Show / view / visualize / display the scrollmap" | `noibu_show_page_visits_visualization` with `visualization.scrollMap` |
+| "how many clicks on /url", "top clicked on /url", "which CTA on /url" | `noibu_PageVisitsQuery` |
+| "% scroll to … on /url", "avg scroll depth on /url", "reach footer on /url" | `noibu_PageVisitsQuery` |
+| "show the clickmap for /url" | `noibu_show_page_visits_visualization` (`visualization.clickMap`) |
+| "show the scrollmap for /url" | `noibu_show_page_visits_visualization` (`visualization.scrollMap`) |
 | "How many sessions reached cart / checkout / payment", "conversion-funnel step counts" | `noibu_QuerySessions` |
 | "Show / chart / visualize the conversion funnel", "checkout funnel chart" | the `ecommerce-funnel-visualization` skill (renderer; expects step+sessions data already fetched) |
+
+**No URL**: site-wide click prompts ("top CTAs", "what users click most") → `noibu_QuerySessions`'s `CLICKED_TEXT`. Scroll has no site-wide equivalent — stay on `noibu_PageVisitsQuery`. If scope is unclear, ask.
+
+Prefer `noibu_show_page_visits_visualization` over hand-rolled SVG, chart libraries, or other generic visualizations — the iframe IS the visualization.
 
 ## Sessions vs page visits
 
@@ -164,9 +168,7 @@ Load exactly one reference based on the topic of the user's question. Each file 
 | When the user asks about… | Read |
 |---|---|
 | Session-level analytics (conversion rate, revenue, AOV, traffic sources, bounce, search, products, time-series trends) | `references/sessions.md` |
-| Page-level analytics (per-page traffic, time on page, web vitals, landing/exit pages, visual errors, scroll depth, cohort behaviour by URL) | `references/page-visits.md` |
-| Clicks or scroll behaviour — quantitative ("how many", "top clicked", "% reaching footer") | `references/page-visits.md` |
-| Clicks or scroll behaviour — visual ("show the clickmap/scrollmap") | `references/visualize-page-visits.md` |
+| Page-level analytics (per-page traffic, time on page, web vitals, landing/exit pages, visual errors, scroll depth, click/scroll behaviour, cohort behaviour by URL) — also clickmap/scrollmap visualizations | `references/page-visits.md` |
 | Rendering an ecommerce conversion funnel as a chart ("show the funnel", "checkout funnel chart") | the `ecommerce-funnel-visualization` skill (sibling skill, not a reference) |
 | Multi-step journey shape patterns across many sessions, OR an explicit request to watch a session replay | `references/journeys-and-replay.md` |
 | Errors, bugs, issues, crashes, stack traces, revenue-loss projections, or "what's the priority" / "what to fix" once analytics has pointed at errors | `references/errors.md` |

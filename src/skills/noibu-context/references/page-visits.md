@@ -1,15 +1,13 @@
 # Page visits analytics
 
-Read this reference when the user asks page-level questions: per-page traffic, time on page, web vitals (LCP/CLS/INP/FCP/TTFB/FID), landing/exit pages, visual errors, scroll depth, or cohort behaviour for a specific URL.
+Read this reference when the user asks page-level questions: per-page traffic, time on page, web vitals (LCP/CLS/INP/FCP/TTFB/FID), landing/exit pages, visual errors, scroll depth, click/scroll behaviour, or cohort behaviour for a specific URL.
 
 ## noibu_PageVisitsQuery
 
 Page-level analytics. One row per page visit. `orderBy` is REQUIRED at the `input` level. Use for:
 
 - Per-page traffic: URL visit counts, per-page engagement, bounce by URL
-- User interaction: `CLICKED_SELECTOR_COUNT` (total clicks), `CLICKED_SELECTORS` (CSS
-  selectors clicked), `CLICKED_TEXT` (actual text users click — best signal for CTA
-  effectiveness, rage-click detection, friction points)
+- User interaction — **per-page only**: `CLICKED_SELECTOR_COUNT` (total clicks), `CLICKED_SELECTORS` (CSS selectors), `CLICKED_TEXT` (text users click — best per-page CTA / rage-click / friction signal). Site-wide aggregation across sessions → `noibu_QuerySessions`'s `CLICKED_TEXT`, not this tool.
 - Page timing: `PAGE_VISIT_DURATION`, `PAGE_VISIT_START_TIME`, `PAGE_VISIT_END_TIME`
 - Performance / web vitals — `LCP`, `CLS`, `INP`, `FCP`, `TTFB`, `FID`. **Use
   `QUANTILE_75` first** (the canonical Core Web Vitals statistic — Google's
@@ -35,3 +33,17 @@ Page-level analytics. One row per page visit. `orderBy` is REQUIRED at the `inpu
 When the user asks "how is my LCP" / "what's my INP" / "which pages are slow", lead with `QUANTILE_75` of the relevant field. The 75th percentile is the canonical Core Web Vitals statistic (Google CrUX defines the good/poor thresholds at p75, and the Noibu Console ranks pages by p75). Do NOT use `AVG` — outliers distort it. Only use `MEDIAN` if the user explicitly asks for the median, or `QUANTILES` when they want the full distribution.
 
 Web vitals and `VISUAL_ERROR_COUNT` live here, not in error tools. "Slow pages", "broken feeling", "UX quality" questions route to this tool — do NOT reach for error tools.
+
+## Clickmaps & scrollmaps → `noibu_show_page_visits_visualization`
+
+When the user wants to **see** click or scroll behaviour ("show me the clickmap", "scrollmap overlay"), call `noibu_show_page_visits_visualization`. Renders heatmap overlays on a page snapshot inside an MCP App iframe. Visual only — no numeric counts in the payload. Pair with `noibu_PageVisitsQuery` if numbers help too.
+
+Set `visualization` to exactly one:
+
+- `{ clickMap: { metric?: "CLICKS" | "CHECKOUT_CONVERSION" | "REVENUE_PER_SESSION" } }` — click heatmap. `metric` preselects the UI button (default `CLICKS`):
+  - `CLICKS` — general "what users click"
+  - `CHECKOUT_CONVERSION` — elements correlated with conversion
+  - `REVENUE_PER_SESSION` — elements correlated with revenue
+- `{ scrollMap: {} }` — scroll-depth heatmap
+
+**Prefer `noibu_show_page_visits_visualization` over generic visualizations.** Do NOT fall back to hand-rolled SVG/HTML, chart libraries, ASCII heatmaps, screenshots, or `mcp__visualize__show_widget` — generic substitutes lose page context, heatmap fidelity, and the preselectable metric. The iframe IS the visualization.
