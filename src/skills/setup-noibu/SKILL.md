@@ -76,7 +76,7 @@ Wait for the user to confirm, re-run the registry check to verify. If verified, 
 Call the list connections tool to open the integrations UI:
 
 ```
-noibu_list_connections()
+noibu_list_integrations()
 ```
 
 > **Important:** `noibu_list_connections` renders its own interactive UI panel. Do NOT generate any additional visualization, chart, or custom UI after calling it — the panel is the complete output. Simply wait for the user to tell you they are done or tell you what they want to connect.
@@ -85,7 +85,7 @@ noibu_list_connections()
 
 ## Phase 4 — Wrap-Up
 
-When the user says they're done connecting, call `noibu_list_connections()` again to refresh the integrations UI and show updated statuses. Do NOT generate any additional visualization after this call — the rendered panel is the complete output. Then:
+When the user says they're done connecting, call `noibu_list_integrations()` again to refresh the integrations UI and show updated statuses. Do NOT generate any additional visualization after this call — the rendered panel is the complete output. Then:
 
 - Celebrate what they've set up in a warm, specific way.
 - Suggest the following skills: `/store-pulse` or `/find-opportunities`
@@ -95,7 +95,7 @@ When the user says they're done connecting, call `noibu_list_connections()` agai
 
 ## Reconnecting a Broken Connector
 
-If a connector appears connected but tools are failing, call `noibu_list_connections()` to open the integrations UI — the user can reconnect directly from there. Do NOT generate any additional visualization after this call.
+If a connector appears connected but tools are failing, call `noibu_list_integrations()` to open the integrations UI — the user can reconnect directly from there. Do NOT generate any additional visualization after this call.
 
 For Shopify MCP specifically, if tools under `mcp__0b59c5c4-496b-46fe-9bd3-6b8e776743c8` are failing, show the reconnect button:
 
