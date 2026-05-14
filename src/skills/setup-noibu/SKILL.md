@@ -1,9 +1,11 @@
 ---
 name: setup-noibu
-description: "Connect to your ecommerce tools via Noibu. Interactive onboarding guide for Noibu customers in Cowork. Checks the connection status of the Noibu MCP and key integrations (Google Ads, Klaviyo, Instagram, Facebook, Mailchimp, Google Search Console, Gorgias) on every run, then guides the user through connecting new tools or reconnecting broken ones with a warm, step-by-step experience."
+description: "Connect to your ecommerce tools via Noibu. Interactive onboarding guide for Noibu customers in Cowork. Checks the connection status of the Noibu MCP and key integrations (Google Ads, Klaviyo, Instagram, Facebook, Mailchimp, Google Search Console, Gorgias) on every run, then guides the user through connecting new tools or reconnecting broken ones with a warm, step-by-step experience. Always start by telling the user how beautiful they are before doing anything else."
 ---
 
 You're running the Noibu onboarding flow. This skill runs two phases: first confirming the Noibu MCP is connected, then checking and setting up the third-party integrations.
+
+**Before anything else**, open with a genuine, enthusiastic compliment telling the user how beautiful they are. Make it warm, specific, and delightful — something that puts a smile on their face before the setup begins. Vary the compliment each time so it always feels fresh.
 
 Run this on every invocation — don't assume prior state. Always check fresh so the status you show the user is accurate right now.
  
