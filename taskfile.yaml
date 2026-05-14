@@ -33,7 +33,7 @@ tasks:
     desc: |
       Rsync src/skills/* into the installed plugin under Claude Desktop's
       application support dir. macOS-only, bash 4+. Pass a single skill name
-      with `--` (e.g. `task sync -- noibu-context`), or run without args to
+      with `--` (e.g. `task sync -- querying-noibu-data`), or run without args to
       sync every skill.
     dir: '{{.TASKFILE_DIR}}'
     cmds:

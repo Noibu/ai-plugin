@@ -1,13 +1,13 @@
 ---
-name: noibu-context
+name: querying-noibu-data
 description: >
-  Routing guide for the Noibu MCP server (noibu_* tools): which tool answers which
-  question, field semantics, query constraints, and console-link policy. Use for any
-  question answerable by the noibu_* tools — even when the user doesn't say "Noibu"
-  by name. Load on questions about domains, traffic, sessions, page visits, conversion
-  and revenue analytics, click and scroll behaviour, web vitals, user journeys, session
-  replays, errors or issues, and on requests to connect, disconnect, or check the
-  status of third-party integrations. Also triggers on a bare "noibu" / "Noibu" mention.
+    Required reference for calling `noibu_*` tools — field and measure semantics,
+    query constraints (the `orderBy`-at-input-level requirement, row caps,
+    unique-measure rule), the `rationale` argument convention, and domain
+    resolution. Also covers parsing of pasted `console.noibu.com` URLs and
+    third-party integration management. Loads alongside topical Noibu skills
+    (e.g., `checkout-analysis`, `tech-diagnosis`), not instead of them — they
+    own routing for their respective domains.
 ---
 
 # Noibu MCP routing guide
