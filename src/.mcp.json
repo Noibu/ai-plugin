@@ -2,7 +2,7 @@
   "mcpServers": {
     "noibu": {
       "type": "http",
-      "url": "https://mcp.noibu.com"
+      "url": "https://mcp.noibu.com/mcp"
     }
   }
 }
