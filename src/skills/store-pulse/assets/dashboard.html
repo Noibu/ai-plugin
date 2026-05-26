@@ -773,7 +773,7 @@
   // ===== Noibu MCP helper — domainId + rationale always supplied =====
   async function callNoibu(input) {
     return await window.cowork.callMcpTool(
-      'mcp__fcde485d-4a50-4aca-862c-1e5b0770317e__noibu_search_sessions',
+      'mcp__a53d8516-38be-4a45-bddb-88be145c1e57__noibu_search_sessions',
       { domainId: SP_CONFIG.domain.id, input, rationale: 'Store Pulse dashboard data fetch' }
     );
   }
@@ -1025,7 +1025,7 @@
           const startDate = periodWindow.startTime.split('T')[0];
           const endDate = periodWindow.endTime.split('T')[0];
           const spendR = await window.cowork.callMcpTool(
-            'mcp__fcde485d-4a50-4aca-862c-1e5b0770317e__noibu_googleads_search_stream_gaql',
+            'mcp__a53d8516-38be-4a45-bddb-88be145c1e57__noibu_googleads_search_stream_gaql',
             { query: `SELECT campaign.id, metrics.cost_micros FROM campaign WHERE segments.date BETWEEN '${startDate}' AND '${endDate}'` }
           );
           let payload = spendR;

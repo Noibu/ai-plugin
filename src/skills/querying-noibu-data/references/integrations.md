@@ -28,11 +28,8 @@ Toolkit slug → display name:
 
 - `googleads` → **Google Ads** (campaigns, ad groups, keyword performance)
 - `metaads` → **Meta Ads** (ad campaigns and performance)
-- `shopify` → **Shopify** (store data, orders, products)
-- `klaviyo` → **Klaviyo** (email/SMS audiences and campaigns)
 - `instagram` → **Instagram** (business accounts and media)
 - `facebook` → **Facebook** (pages and business data)
-- `mailchimp` → **Mailchimp** (email campaigns and audiences)
 - `google_search_console` → **Google Search Console** (search performance and indexing)
 - `gorgias` → **Gorgias** (customer support tickets)
 

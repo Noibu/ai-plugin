@@ -17,7 +17,7 @@ Search the registry to check if Noibu is connected:
 search_mcp_registry(keywords: ["noibu"])
 ```
 
-The Noibu connector UUID is: `fcde485d-4a50-4aca-862c-1e5b0770317e`
+The Noibu connector UUID is: `a53d8516-38be-4a45-bddb-88be145c1e57`
 
 **If connected** (`"connected": true`): Greet the user warmly and confirm Noibu is active. For example:
 
@@ -28,7 +28,7 @@ Then move straight to Phase 2.
 **If not connected** (`"connected": false`): Explain what connecting Noibu unlocks in plain, customer-friendly terms — e.g., the ability to ask natural-language questions about checkout errors, session replays, and revenue impact. Keep it to 2-3 sentences. Then show the connect button:
 
 ```
-suggest_connectors(uuids: ["fcde485d-4a50-4aca-862c-1e5b0770317e"], keywords: ["noibu"])
+suggest_connectors(uuids: ["a53d8516-38be-4a45-bddb-88be145c1e57"], keywords: ["noibu"])
 ```
 
 After showing the button, tell the user:
