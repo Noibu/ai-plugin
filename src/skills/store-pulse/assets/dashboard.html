@@ -480,62 +480,6 @@
   }
   .sp-indicator:hover .sp-indicator-tooltip { visibility: visible; }
 
-  /* Per-cell "+" button for paid-performance cells where data isn't available
-     (Spend / ROAS on unconnected platforms). Click opens a modal explaining how to connect. */
-  .sp-paid-add {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 18px;
-    height: 18px;
-    background: var(--color-bg-page);
-    border: 1px solid var(--color-border);
-    border-radius: 3px;
-    font-size: 13px;
-    line-height: 1;
-    font-weight: 540;
-    color: var(--color-text-secondary);
-    cursor: pointer;
-    padding: 0;
-  }
-  .sp-paid-add:hover {
-    background: var(--color-accent-bg);
-    color: var(--color-accent);
-    border-color: var(--color-accent);
-  }
-
-  /* Modal for paid-performance connect instructions. Centered, light backdrop. */
-  .sp-modal { position: fixed; inset: 0; z-index: 1000; display: flex; align-items: center; justify-content: center; }
-  .sp-modal[hidden] { display: none; }
-  .sp-modal-backdrop { position: absolute; inset: 0; background: rgba(13,18,28,0.4); }
-  .sp-modal-card {
-    position: relative;
-    background: var(--color-bg-card);
-    border-radius: 8px;
-    padding: 24px 28px;
-    max-width: 440px;
-    width: 90%;
-    box-shadow: 0px 10px 30px rgba(13,18,28,0.2);
-  }
-  .sp-modal-close {
-    position: absolute;
-    top: 10px;
-    right: 12px;
-    background: transparent;
-    border: 0;
-    cursor: pointer;
-    font-size: 20px;
-    line-height: 1;
-    color: var(--color-text-secondary);
-    padding: 4px 8px;
-  }
-  .sp-modal-close:hover { color: var(--color-text-primary); }
-  .sp-modal-content { font-size: 13px; line-height: 20px; color: var(--color-text-primary); }
-  .sp-modal-content h3 { margin: 0 0 8px; font-size: 14px; font-weight: 540; }
-  .sp-modal-content p { margin: 0; }
-  .sp-modal-content code { background: var(--color-bg-page); padding: 2px 6px; border-radius: 3px; font-family: 'IBM Plex Mono', monospace; font-size: 12px; }
-  .sp-modal-content a { color: var(--color-accent); text-decoration: underline; }
-
   /* Empty state — used when a block successfully fetched but returned no data
      (e.g. new domain with no traffic yet, or a period with zero qualifying rows). */
   .sp-empty {
@@ -705,24 +649,13 @@
         <thead>
           <tr>
             <th>Paid Ad Platform</th>
-            <th class="num">Spend</th>
             <th class="num">Sessions</th>
             <th class="num"><span class="sp-tip">Conversions<span class="sp-tip-text">Last-touch attributed via UTM and matched to your store's order data. Will diverge from each ad platform's native conversion count due to attribution-window differences.</span></span></th>
             <th class="num">Revenue</th>
-            <th class="num"><span class="sp-tip">ROAS<span class="sp-tip-text">Return on ad spend &mdash; revenue from attributed orders divided by ad spend.</span></span></th>
           </tr>
         </thead>
         <tbody id="sp-paid"></tbody>
       </table>
-    </div>
-  </div>
-
-  <!-- MODAL — connect instructions for paid-performance cells without data -->
-  <div class="sp-modal" id="sp-paid-modal" hidden>
-    <div class="sp-modal-backdrop"></div>
-    <div class="sp-modal-card">
-      <button type="button" class="sp-modal-close" aria-label="Close">&times;</button>
-      <div class="sp-modal-content" id="sp-paid-modal-content"></div>
     </div>
   </div>
 
@@ -771,11 +704,61 @@
   }
 
   // ===== Noibu MCP helper — domainId + rationale always supplied =====
+  // Detects error-shaped responses (auth-required, connector-disconnected, server errors)
+  // and throws so the top-level spRender catch can surface them as a banner. Without this,
+  // an auth-required response gets handed to noibuRecords(), which doesn't recognize the
+  // shape, returns [], and every metric renders as zero with no indication of why.
+  //
+  // The `mcp__a53d8516-...__` prefix is the canonical Noibu MCP server identifier and is
+  // duplicated in SKILL.md step 3 (inside the `mcp_tools` array passed to
+  // `create_artifact`). If Noibu's MCP UUID ever rotates, BOTH sites must be updated
+  // together — otherwise the dashboard will render but every data call silently fails.
   async function callNoibu(input) {
-    return await window.cowork.callMcpTool(
-      'mcp__a53d8516-38be-4a45-bddb-88be145c1e57__noibu_search_sessions',
-      { domainId: SP_CONFIG.domain.id, input, rationale: 'Store Pulse dashboard data fetch' }
-    );
+    let result;
+    try {
+      result = await window.cowork.callMcpTool(
+        'mcp__a53d8516-38be-4a45-bddb-88be145c1e57__noibu_search_sessions',
+        { domainId: SP_CONFIG.domain.id, input, rationale: 'Store Pulse dashboard data fetch' }
+      );
+    } catch (err) {
+      // Network / transport failure — re-throw with a tagged message.
+      const e = new Error(`Noibu request failed: ${err?.message || err}`);
+      e.noibuKind = 'transport';
+      throw e;
+    }
+    const errMsg = extractNoibuError(result);
+    if (errMsg) {
+      const e = new Error(errMsg);
+      e.noibuKind = /auth|connect|sign|permission/i.test(errMsg) ? 'auth' : 'tool';
+      throw e;
+    }
+    return result;
+  }
+
+  // Inspects an MCP tool result for any shape that means "no data because something went
+  // wrong" (vs "the query ran fine and found nothing"). Returns the human-readable error
+  // string when found, or null when the response looks like a normal data response.
+  function extractNoibuError(result) {
+    if (!result) return null;
+    // MCP convention: isError flag on the response object.
+    if (result.isError === true) {
+      const txt = Array.isArray(result.content)
+        ? result.content.map(c => c?.text).filter(Boolean).join(' ')
+        : '';
+      return txt || 'Noibu returned an error response.';
+    }
+    // Some wrappers put the error string directly on the object.
+    if (typeof result.error === 'string' && result.error) return result.error;
+    if (result.error?.message) return result.error.message;
+    // Some transports stuff the auth-required text into a content block without
+    // setting isError. Sniff for the canonical phrase.
+    if (Array.isArray(result.content)) {
+      const txt = result.content.map(c => c?.text).filter(Boolean).join(' ');
+      if (/requires authentication|needs to connect|not authorized|unauthorized/i.test(txt)) {
+        return txt;
+      }
+    }
+    return null;
   }
 
   // Extract the records array from a Noibu QuerySessions response, defensive against the
@@ -820,9 +803,9 @@
           { predefined: { measure: 'CONVERSION_RATE', measureAlias: 'cvr' } },
           { predefined: { measure: 'REVENUE_PER_SESSION', measureAlias: 'rps' } },
           { aggregate: { measureAlias: 'aov', measureFunc: 'AVG', target: { field: 'CHECKOUT_COMPLETE_TOTAL_VALUE' } } }
-        ]
-      },
-      orderBy: { measureAlias: 'sessions', direction: 'DESCENDING' }
+        ],
+        orderBy: { measureAlias: 'sessions', direction: 'DESCENDING' }
+      }
     });
     const rec = noibuRecords(r)[0] || {};
     return {
@@ -840,9 +823,9 @@
         periodOptions: { dateTimeRange: window },
         queryInput: {
           measures: [{ aggregate: { measureAlias: 'sessions', measureFunc: 'COUNT', target: { field: 'SESSION_ID' } } }],
-          groupBy: { fieldSegments: ['CONVERSION_FUNNEL_DEPTH'] }
-        },
-        orderBy: { measureAlias: 'sessions', direction: 'DESCENDING' }
+          groupBy: { fieldSegments: ['CONVERSION_FUNNEL_DEPTH'] },
+          orderBy: { measureAlias: 'sessions', direction: 'DESCENDING' }
+        }
       }),
       callNoibu({
         periodOptions: { dateTimeRange: window },
@@ -852,9 +835,9 @@
               measureAlias: 'pv', measureFunc: 'COUNT', target: { field: 'SESSION_ID' },
               filters: [{ fieldName: 'PRODUCT_VIEW_COUNT', operator: 'GREATER_THAN', comparisonValues: ['0'] }]
             }
-          }]
-        },
-        orderBy: { measureAlias: 'pv', direction: 'DESCENDING' }
+          }],
+          orderBy: { measureAlias: 'pv', direction: 'DESCENDING' }
+        }
       })
     ]);
     const byDepth = {};
@@ -889,9 +872,10 @@
             }
           }
         ],
-        groupBy: { arrayJoin: { arrayJoinCollection: 'VIEWED_PRODUCT_TITLES' }, limit: 5 }
-      },
-      orderBy: { measureAlias: 'sessions', direction: 'DESCENDING' }
+        groupBy: { arrayJoin: { arrayJoinCollection: 'VIEWED_PRODUCT_TITLES' } },
+        orderBy: { measureAlias: 'sessions', direction: 'DESCENDING' },
+        limit: 5
+      }
     });
     return noibuRecords(r).map(rec => ({
       title: rec.viewed_product_titles_join || '(unknown)',
@@ -911,9 +895,10 @@
           { predefined: { measure: 'CONVERSION_RATE', measureAlias: 'cvr' } },
           { predefined: { measure: 'REVENUE_PER_SESSION', measureAlias: 'rps' } }
         ],
-        groupBy: { fieldSegments: ['UTM_SOURCE', 'UTM_MEDIUM'], limit: 50 }
-      },
-      orderBy: { measureAlias: 'sessions', direction: 'DESCENDING' }
+        groupBy: { fieldSegments: ['UTM_SOURCE', 'UTM_MEDIUM'] },
+        orderBy: { measureAlias: 'sessions', direction: 'DESCENDING' },
+        limit: 50
+      }
     });
     const buckets = {
       'Direct':   { sessions: 0, _eng: 0, _cvr: 0, _rps: 0 },
@@ -970,9 +955,7 @@
 
   async function fetchPaid(periodWindow) {
     // Each row always renders. UTM-attributed sessions/conversions/revenue come from a
-    // standard Noibu query (works for any merchant Noibu sees). Spend & ROAS populate only
-    // when the platform-specific spend query succeeds — otherwise the cell shows a "+" button.
-    // We don't pre-check connection status; we just attempt and fail gracefully.
+    // standard Noibu query (works for any merchant Noibu sees).
     // NOTE: parameter is named `periodWindow` (not `window`) to avoid shadowing the global
     // `window` object — that bug previously killed window.cowork.callMcpTool inside this fn.
     const platforms = [
@@ -982,9 +965,6 @@
     ];
 
     await Promise.all(platforms.map(async (p) => {
-      // Default values. spend === null means "show + button". roas === null same.
-      p.spend = null;
-      p.roas = null;
       p.sessions = 0;
       p.conversions = 0;
       p.revenue = 0;
@@ -1006,9 +986,9 @@
             ],
             filters: [
               { fieldFilter: { fieldName: 'UTM_SOURCE', operator: 'IS_ANY_OF', comparisonValues: p._utmSources } }
-            ]
-          },
-          orderBy: { measureAlias: 'sessions', direction: 'DESCENDING' }
+            ],
+            orderBy: { measureAlias: 'sessions', direction: 'DESCENDING' }
+          }
         });
         const rec = noibuRecords(attribR)[0] || {};
         // Noibu returns numeric measures as strings — coerce so render-time .toFixed() works.
@@ -1019,41 +999,6 @@
         console.warn(`Paid attribution fetch failed for ${p.platform}`, err);
       }
 
-      // 2) Google Ads spend (only if user has Google Ads connected via Noibu).
-      if (p._toolkit === 'googleads') {
-        try {
-          const startDate = periodWindow.startTime.split('T')[0];
-          const endDate = periodWindow.endTime.split('T')[0];
-          const spendR = await window.cowork.callMcpTool(
-            'mcp__a53d8516-38be-4a45-bddb-88be145c1e57__noibu_googleads_search_stream_gaql',
-            { query: `SELECT campaign.id, metrics.cost_micros FROM campaign WHERE segments.date BETWEEN '${startDate}' AND '${endDate}'` }
-          );
-          let payload = spendR;
-          if (Array.isArray(spendR?.content)) {
-            const text = spendR.content.find(c => c?.type === 'text')?.text;
-            if (text) try { payload = JSON.parse(text); } catch (e) {}
-          }
-          const rows = payload?.results || payload?.data || (Array.isArray(payload) ? payload : []);
-          // Distinguish "connected with no campaigns/spend" from "not connected".
-          // Noibu returns an empty results array (not an error) when no Google Ads
-          // account is linked — that case should keep p.spend at null so the cell
-          // renders the "+" connect button instead of a misleading "$0.00".
-          // When rows has at least one campaign, we sum its cost_micros — that
-          // covers both legitimate zero-spend periods (rows present, total = 0)
-          // and active spend.
-          if (rows.length > 0) {
-            let microsTotal = 0;
-            for (const row of rows) {
-              const micros = row?.metrics?.cost_micros ?? row?.cost_micros ?? 0;
-              microsTotal += parseFloat(micros) || 0;
-            }
-            p.spend = microsTotal / 1_000_000;
-            p.roas = p.spend > 0 ? p.revenue / p.spend : 0;
-          }
-        } catch (err) {
-          console.warn('Google Ads spend fetch failed', err);
-        }
-      }
     }));
 
     return platforms;
@@ -1188,7 +1133,17 @@
       d = await spFetchData(period);
     } catch (err) {
       console.error('spFetchData failed', err);
-      document.getElementById('sp-period-context').innerHTML = 'Failed to load data &mdash; check your connection and reload.';
+      let msg;
+      if (err?.noibuKind === 'auth') {
+        msg = 'Noibu connector isn&rsquo;t connected (or its session expired). Open the Cowork sidebar, sign in to the Noibu connector, then reload this dashboard.';
+      } else if (err?.noibuKind === 'transport') {
+        msg = 'Couldn&rsquo;t reach Noibu &mdash; ' + (err.message || 'network error') + '. Check your connection and reload.';
+      } else if (err?.noibuKind === 'tool') {
+        msg = 'Noibu returned an error: ' + (err.message || 'unknown') + '. Reload to retry.';
+      } else {
+        msg = 'Failed to load data &mdash; ' + (err?.message || 'unknown error') + '. Check the browser console and reload.';
+      }
+      document.getElementById('sp-period-context').innerHTML = msg;
       return;
     }
 
@@ -1442,35 +1397,25 @@
     }
     });
 
-    // Paid — every row always renders (Google Ads, Facebook, Instagram). Cells we can't
-    // fill (spend / ROAS for unconnected platforms) get a "+" button that opens a modal
-    // with connect instructions. If the fetch came back with no platforms at all, show
-    // an empty row instead of a blank table.
+    // Paid — every row always renders (Google Ads, Facebook, Instagram). All cells come
+    // from Noibu UTM attribution against the platform's UTM source patterns.
     spSafeRender('paid-performance', () => {
     if (d.paid) {
       const tbody = document.getElementById('sp-paid');
       if (d.paid.length === 0) {
-        tbody.innerHTML = `<tr class="sp-empty-row"><td colspan="6">Paid ad data not available.</td></tr>`;
+        tbody.innerHTML = `<tr class="sp-empty-row"><td colspan="4">Paid ad data not available.</td></tr>`;
         return;
       }
-      const addBtn = (platform) =>
-        `<button class="sp-paid-add" onclick="spShowPaidInstruction('${platform}')" title="Connect data source">+</button>`;
       tbody.innerHTML = d.paid.map(p => {
         const sessions = (p && typeof p.sessions === 'number') ? p.sessions : 0;
         const conversions = (p && typeof p.conversions === 'number') ? p.conversions : 0;
         const revenue = (p && typeof p.revenue === 'number') ? p.revenue : 0;
-        const spendCell = (p && p.spend !== null && p.spend !== undefined) ? `$${p.spend.toFixed(2)}` : addBtn(p.platform);
-        const roasCell = (p && p.roas !== null && p.roas !== undefined && p.spend > 0)
-          ? `${p.roas.toFixed(2)}&times;`
-          : ((!p || p.spend === null || p.spend === undefined) ? addBtn(p.platform) : '&mdash;');
         return `
           <tr>
             <td>${p.platform}</td>
-            <td class="num">${spendCell}</td>
             <td class="num">${sessions.toLocaleString()}</td>
             <td class="num">${conversions}</td>
             <td class="num">$${revenue.toFixed(0)}</td>
-            <td class="num">${roasCell}</td>
           </tr>
         `;
       }).join('');
@@ -1533,44 +1478,6 @@
   // Initial render
   spRender('24h');
 
-
-  // Per-platform connect instructions surfaced when the user clicks a "+" button on a
-  // paid-performance cell that lacks data.
-  const SP_PAID_INSTRUCTIONS = {
-    'Google Ads': {
-      title: 'Connect Google Ads',
-      body: 'To see Google Ads spend and ROAS, connect Google Ads. Ask in chat to set up the connection.'
-    },
-    'Facebook': {
-      title: 'Connect Meta Ads (Facebook)',
-      body: 'To see Facebook ad spend and ROAS, connect Meta Ads (Facebook). Ask in chat to set up the connection.'
-    },
-    'Instagram': {
-      title: 'Connect Meta Ads (Instagram)',
-      body: 'To see Instagram ad spend and ROAS, connect Meta Ads (Instagram). Ask in chat to set up the connection.'
-    }
-  };
-
-  function spShowPaidInstruction(platform) {
-    const inst = SP_PAID_INSTRUCTIONS[platform];
-    if (!inst) return;
-    const modal = document.getElementById('sp-paid-modal');
-    const content = document.getElementById('sp-paid-modal-content');
-    if (!modal || !content) return;
-    content.innerHTML = `<h3>${inst.title}</h3><p>${inst.body}</p>`;
-    modal.hidden = false;
-  }
-
-  // Modal dismissal — click the close button or the backdrop.
-  document.addEventListener('click', (e) => {
-    const target = e.target;
-    if (!target) return;
-    const modal = document.getElementById('sp-paid-modal');
-    if (!modal || modal.hidden) return;
-    if (target.classList.contains('sp-modal-backdrop') || target.classList.contains('sp-modal-close')) {
-      modal.hidden = true;
-    }
-  });
 
   // On hover, decide whether the tooltip should extend rightward (default) or leftward (when
   // the trigger sits close to the right edge of the viewport so a 280px-wide tooltip would clip).

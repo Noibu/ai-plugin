@@ -26,9 +26,9 @@ The cron job creates a draft in the user's connected email account; the user rev
 - **Summary** — body = editorial summary paragraph + headline KPI table. ~1–2 KB. Fast to assemble, lands cleanly across every email client.
 - **Full report** — body = editorial summary + headline KPI table + one inline table per enabled block (funnel, top products, channels, paid). ~6–10 KB. Recipients see the whole report when they open the email — no attachments, no PDF, nothing to download.
 
-Tools:
-- **Gmail**: `mcp__gmail__create_draft` with `{ to, subject, htmlBody }`.
-- **Outlook**: the Microsoft 365 Outlook draft tool with the equivalent shape.
+Tools (the cron substitutes the actual fully-qualified names at creation time — see the cron-prompt placeholder list below):
+- **Gmail**: `{{gmail_draft_tool}}` with `{ to, subject, htmlBody }`.
+- **Outlook**: `{{outlook_draft_tool}}` with the equivalent shape.
 
 No attachments either way. We deliberately moved away from PDF: tables render natively in email clients, the PDF generation step was the slowest part of the cron, and inlining the tables keeps the tool-call payload smaller than a base64-encoded PDF.
 
@@ -45,7 +45,7 @@ Subject: Store Pulse — [period label]
 <purchase funnel table: Step / % of sessions / Sessions / Prior % / Prior count / Δ pp>
 <top products table: Product / Sessions / Add-to-Cart %. Above it: "Site-wide add-to-cart benchmark this period: X%">
 <channel performance table: Channel / Sessions / Engagement / Conversion / RPS>
-<paid ad performance table: Platform / Spend / Sessions / Conversions / Revenue / ROAS. Per-cell fallbacks: `—` for unconnected spend/ROAS, real numbers from UTM attribution for sessions/conversions/revenue. Do NOT generate a 2-col Platform/Status table.>
+<paid ad performance table: Platform / Sessions / Conversions / Revenue. Numbers from Noibu UTM attribution; show `0` for platforms with no tagged traffic.>
 
 <small footer>Generated [timestamp] from Store Pulse for [domain].</small>
 ```
@@ -99,11 +99,7 @@ Markdown table: Channel / Sessions / Engagement / Conversion / RPS.
 Markdown table with these columns and rules — do NOT substitute a 2-col Platform/Status table:
 
 - **Platform**: always three rows (Google Ads, Facebook, Instagram).
-- **Spend**: `$X.XX` if connector returned spend; otherwise `—`.
-- **Sessions / Conversions / Revenue**: real numbers from Noibu UTM attribution (these populate even when ad-platform connector isn't wired). `0` if no UTM-tagged traffic.
-- **ROAS**: `X.XX×` if spend > 0 and revenue is known; otherwise `—`.
-
-For platforms where spend is `—`, add a single italic line BELOW the table (don't replace the table): `_Spend and ROAS for [Platform] aren't available — connector not configured._`
+- **Sessions / Conversions / Revenue**: real numbers from Noibu UTM attribution. `0` if no UTM-tagged traffic for that platform in the window.
 
 ---
 
@@ -125,6 +121,10 @@ Slack unfurls the canvas URL automatically into a preview card, so a one-line me
 ## Scheduling form widget
 
 The form rendered via `mcp__visualize__show_widget` (title: `schedule_store_pulse`) during Setup step 4b. Pass this HTML verbatim — don't reconstruct from memory, don't trim, don't rename ids or classes (the inline JS depends on every selector).
+
+**Note on `sendPrompt`.** The form's Skip button and the `submitSchedule()` function both call `sendPrompt(text)` — this is a global function Cowork injects into the widget execution context when the HTML is rendered through `mcp__visualize__show_widget`. It is **not a standard browser API**. Rendering this HTML any other way (inline in chat, via `mcp__cowork__create_artifact`, etc.) leaves `sendPrompt` undefined and both buttons silently no-op. If Cowork ever moves this global to a different namespace (e.g. `window.cowork.sendPrompt`), the two `sendPrompt(...)` call sites in the snippet below need to be updated to match.
+
+**Note on icon classes.** The form uses Tabler Icons classes (`ti ti-sun`, `ti ti-calendar`, `ti ti-brand-slack`, etc.) and assumes the Tabler Icons stylesheet is loaded in Cowork's widget runtime. If Cowork swaps icon libraries or Tabler renames a class in a major version, the icons render as blank space — but every icon in the form already has `aria-hidden="true"` and sits next to a visible text label ("Daily", "Email", etc.), so the form remains usable. The icons are decorative reinforcement, not the only signal. If you do see blank icons in the rendered widget, check whether Tabler is still the canonical icon font on the Cowork side, and update the `ti ti-*` classes (or swap to whatever the new library uses) at the call sites below.
 
 ```html
 <style>
@@ -233,6 +233,20 @@ Substitute this into the `description` field of `mcp__scheduled-tasks__create_sc
 
 **Before passing this to create_scheduled_task, replace every `{{...}}` placeholder with the actual value from the user's config.** That includes `{{domain.name}}`, `{{schedule.timezone}}`, `{{schedule.frequency}}`, `{{schedule.day_of_week}}`, `{{schedule.anchor_iso_week}}`, `{{schedule.detail_level}}` (`"summary"` or `"full"`), `{{config.blocks}}`, and `{{config.schedule.deliveries}}` (each delivery's channel + target + channel_account). The cron has no access to the chat session, so unresolved placeholders will fail at run time. All per-user values must be baked in.
 
+**Connector tool names must also be baked in.** The cron calls Slack and email tools whose fully-qualified names look like `mcp__<server>__<tool>`. The `<server>` segment can be a stable slug or a UUID depending on how each connector was registered, and the cron has no way to discover it at run time, so every tool the cron will call has to be substituted in at creation time.
+
+Resolve each prefix from a tool you've already called or have visible in your available-tools list this session, then set the corresponding placeholder:
+
+- **Slack** (only if Slack is a delivery): use `slack_search_channels` (already called during step 4 channel selection) as the donor — it appears as `mcp__<server>__slack_search_channels`; reuse that prefix.
+  - `{{slack_canvas_tool}}` → `mcp__<server>__slack_create_canvas`
+  - `{{slack_message_tool}}` → `mcp__<server>__slack_send_message`
+- **Gmail** (only if any delivery has `channel_account == "gmail"`): find the Gmail draft-creation tool in your available tools — it appears as `mcp__<server>__create_draft` and sits alongside other Gmail tools (`search_threads`, `list_labels`, `list_drafts`). The `<server>` segment is typically a UUID rather than the slug `gmail`.
+  - `{{gmail_draft_tool}}` → `mcp__<server>__create_draft` (the Gmail one)
+- **Outlook** (only if any delivery has `channel_account == "outlook"`): find the Microsoft 365 / Outlook draft-creation tool in your available tools — name varies by connector (commonly `mcp__<server>__create_draft` or similar under a Microsoft 365 server). If you can't find one, surface that to the user and don't create the cron — the run will fail otherwise.
+  - `{{outlook_draft_tool}}` → the fully-qualified name you found
+
+For any channel that isn't part of the user's deliveries, you can leave its placeholder unsubstituted — it's only referenced on the branch that runs.
+
 ```
 Run a scheduled Store Pulse report for {{domain.name}}.
 
@@ -278,19 +292,19 @@ Run a scheduled Store Pulse report for {{domain.name}}.
            - Footer: `<small>Generated [timestamp] from Store Pulse for [domain].</small>`
        - Subject: "Store Pulse — [period label]"
        - Call:
-           delivery.channel_account == "gmail" ? mcp__gmail__create_draft : Microsoft 365 Outlook draft tool
+           delivery.channel_account == "gmail" ? {{gmail_draft_tool}} : {{outlook_draft_tool}}
          with { to: delivery.target, subject, htmlBody }. No attachments.
        - The result is a draft in the user's drafts folder. Do not send.
 
      IF delivery.channel == "slack":
        - IF detail_level == "full":
            - Build the canvas content as Canvas-flavored Markdown: editorial summary paragraph, "## Headline metrics" with a KPI table, and one "## [Block name]" section per block in config.blocks (funnel, top products, channels, paid as markdown tables / lists). Don't include the title in the content — pass it separately.
-           - Call `slack_create_canvas({ title: "Store Pulse — [period label]", content: <canvas markdown> })`. Capture the returned canvas URL.
-           - Call `slack_send_message({ channel_id: delivery.target, message: "*Store Pulse — [period label]*\n\n[canvas URL]" })` (NOT `slack_send_message_draft`) so the canvas link unfurls inline.
-           - **Free-plan fallback:** if `slack_create_canvas` errors with a plan-limit message, fall through to the summary path below and append "_Full canvas report requires a paid Slack plan._" to that message.
+           - Call `{{slack_canvas_tool}}({ title: "Store Pulse — [period label]", content: <canvas markdown> })`. Capture the returned canvas URL.
+           - Call `{{slack_message_tool}}({ channel_id: delivery.target, message: "*Store Pulse — [period label]*\n\n[canvas URL]" })` (the message variant, not the draft variant — drafts only live in the composer of the user who created them) so the canvas link unfurls inline.
+           - **Free-plan fallback:** if `{{slack_canvas_tool}}` errors with a plan-limit message, fall through to the summary path below and append "_Full canvas report requires a paid Slack plan._" to that message.
        - IF detail_level == "summary":
            - Compose a plain mrkdwn message: title line `*Store Pulse — [period label]*`, blank line, editorial summary paragraph, blank line, KPI bullets (`• Sessions: ...`, `• Engagement: ...`, etc.).
-           - Call `slack_send_message({ channel_id: delivery.target, message: <mrkdwn text> })`. No canvas.
+           - Call `{{slack_message_tool}}({ channel_id: delivery.target, message: <mrkdwn text> })`. No canvas.
 
    If one channel fails, log the failure and continue with the others. Don't bail the entire run.
 
