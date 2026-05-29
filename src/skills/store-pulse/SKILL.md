@@ -7,15 +7,6 @@ description: A live, at-a-glance overview of your store's health — surfaced as
 
 A daily-driver ecommerce dashboard. The artifact (`id: store-pulse-dashboard`) is the source of truth — config lives inside its HTML as `SP_CONFIG`.
 
-## Tool name note
-
-Several tools in this skill use fully-qualified MCP server prefixes: `mcp__cowork__*`,
-`mcp__visualize__*`, and `mcp__scheduled-tasks__*`. These server names are
-deployment-level identifiers that can change if a server is renamed or re-registered.
-If a call fails with "tool not found", locate the tool by its short name (e.g.
-`list_artifacts`, `show_widget`, `create_scheduled_task`) in your session's available
-tools and use whatever prefix it appears under.
-
 ## Routing
 
 Call `mcp__cowork__list_artifacts` first. If `store-pulse-dashboard` exists, read `SP_CONFIG.domain.name` out of its HTML before deciding.
@@ -81,11 +72,13 @@ Config is baked into the HTML as `const SP_CONFIG = {...}` via the `__CONFIG_JSO
 Procedure:
 
 1. Read `assets/dashboard.html`.
-2. Run `scripts/render_dashboard.py` to substitute `__CONFIG_JSON__` and `__NOIBU_SESSION_TOOL__`. Don't touch anything else.
-3. Read `src/.claude-plugin/plugin.json` for the `connectorId`. Call `mcp__cowork__create_artifact` with:
+2. Run `scripts/render_dashboard.py` to substitute `__CONFIG_JSON__` exactly. Don't touch anything else.
+3. Call `mcp__cowork__create_artifact` with:
    - `id: "store-pulse-dashboard"`
    - `html_path: <substituted file>`
-   - `mcp_tools: ["mcp__<connectorId>__noibu_search_sessions"]`
+   - `mcp_tools: ["mcp__a53d8516-38be-4a45-bddb-88be145c1e57__noibu_search_sessions"]`
+
+   The `mcp__a53d8516-...__` prefix is the official, stable identifier for the production Noibu MCP connector — same for every user, safe to hardcode here and in `dashboard.html`. **This UUID is duplicated in `assets/dashboard.html` (inside the `callNoibu` helper).** If Noibu rotates its MCP UUID, both sites must be updated together — there's no shared constant, just two literal strings.
 
 Use the template verbatim — renderers, labels, funnel step names, and per-cell empty states are all built in. Don't call discovery tools (`mcp__mcp-registry__list_connectors`, `noibu_list_connections`). On failure, retry with the same HTML.
 

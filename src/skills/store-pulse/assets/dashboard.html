@@ -709,11 +709,15 @@
   // an auth-required response gets handed to noibuRecords(), which doesn't recognize the
   // shape, returns [], and every metric renders as zero with no indication of why.
   //
+  // The `mcp__a53d8516-...__` prefix is the canonical Noibu MCP server identifier and is
+  // duplicated in SKILL.md step 3 (inside the `mcp_tools` array passed to
+  // `create_artifact`). If Noibu's MCP UUID ever rotates, BOTH sites must be updated
+  // together — otherwise the dashboard will render but every data call silently fails.
   async function callNoibu(input) {
     let result;
     try {
       result = await window.cowork.callMcpTool(
-        '__NOIBU_SESSION_TOOL__',
+        'mcp__a53d8516-38be-4a45-bddb-88be145c1e57__noibu_search_sessions',
         { domainId: SP_CONFIG.domain.id, input, rationale: 'Store Pulse dashboard data fetch' }
       );
     } catch (err) {

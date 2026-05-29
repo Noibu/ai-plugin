@@ -7,13 +7,10 @@ mcp__cowork__create_artifact / mcp__cowork__update_artifact.
 Usage:
     python render_dashboard.py <path-to-config.json> <path-to-dashboard.html> <output-path>
 
-Two placeholders are substituted:
-
-  __CONFIG_JSON__         The user's SP_CONFIG object (from the config argument).
-  __NOIBU_SESSION_TOOL__  The fully-qualified Noibu session tool name, constructed
-                          from the connectorId in src/.claude-plugin/plugin.json.
-                          Updating connectorId there is sufficient — no other file
-                          needs to change.
+The dashboard.html template contains the literal string `__CONFIG_JSON__` exactly
+once. The script replaces it with the JSON-encoded config object so the dashboard's
+JS can read `SP_CONFIG` at load time and decide which blocks to render and which
+share channels to expose in the dropdown.
 """
 
 import json
@@ -25,24 +22,18 @@ def render(config_path: Path, template_path: Path, output_path: Path) -> None:
     config = json.loads(config_path.read_text(encoding="utf-8"))
     template = template_path.read_text(encoding="utf-8")
 
-    # Read the connector ID from plugin.json — single source of truth.
-    plugin_json_path = Path(__file__).parent / "../../../.claude-plugin/plugin.json"
-    plugin = json.loads(plugin_json_path.resolve().read_text(encoding="utf-8"))
-    connector_id = plugin["connectorId"]
-    noibu_session_tool = f"mcp__{connector_id}__noibu_search_sessions"
+    placeholder = "__CONFIG_JSON__"
+    if placeholder not in template:
+        raise SystemExit(
+            f"Template at {template_path} is missing the {placeholder} placeholder."
+        )
 
-    for placeholder, value in [
-        ("__CONFIG_JSON__", json.dumps(config, ensure_ascii=False)),
-        ("__NOIBU_SESSION_TOOL__", noibu_session_tool),
-    ]:
-        if placeholder not in template:
-            raise SystemExit(
-                f"Template at {template_path} is missing the {placeholder} placeholder."
-            )
-        template = template.replace(placeholder, value)
+    # JSON-encode with ensure_ascii=False so non-ASCII characters in the config
+    # (e.g., domain names, channel names) survive the substitution intact.
+    rendered = template.replace(placeholder, json.dumps(config, ensure_ascii=False))
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
-    output_path.write_text(template, encoding="utf-8")
+    output_path.write_text(rendered, encoding="utf-8")
     print(f"Wrote {output_path}")
 
 
