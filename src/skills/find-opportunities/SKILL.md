@@ -123,6 +123,8 @@ Surface a ranked list of high-confidence revenue opportunities using Noibu behav
 - Better than last week: `background: #EAF3DE; color: #3B6D11`
 - Same as last week: `background: var(--color-background-secondary); color: var(--color-text-secondary); border: 0.5px solid var(--color-border-tertiary)`
 
+**Note on `sendPrompt`.** The "Investigate" button on each card and the "Schedule digest" / "Skip" buttons in the scheduling form (Step 6) all call `sendPrompt(text)` — a global function Cowork injects into the widget execution context when HTML is rendered through `show_widget`. It is **not a standard browser API**. If Cowork moves this to a different namespace (e.g. `window.cowork.sendPrompt`), every `sendPrompt(...)` call site in both templates below needs to be updated.
+
 **Card template — repeat once per opportunity inside a single outer div:**
 
 ```html
