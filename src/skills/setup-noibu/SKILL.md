@@ -19,8 +19,9 @@ search_mcp_registry(keywords: ["noibu"])
 
 > **Note on `search_mcp_registry` and `suggest_connectors`.** These are Cowork-internal
 > platform tools. If either is unavailable, tell the user: "I can't check your connector
-> status automatically — you can connect Noibu from the Claude connector directory and
-> then come back here." Do not fail silently.
+> status automatically — you can reconnect Noibu through Claude's settings: either via
+> the connector directory if you're using the marketplace version, or via Customize →
+> your plugins if you installed it manually." Do not fail silently.
 
 Read `src/.claude-plugin/plugin.json` for the `connectorId` — this is the Noibu connector UUID, and is the single source of truth for it.
 
