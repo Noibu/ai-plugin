@@ -226,22 +226,10 @@ names. The correct names will already be known from the successful queries above
       `const SESSION_TOOL = "mcp__<server-id>__<tool-name>";`
       Use the exact fully-qualified name that was active during the session.
 
-    - `callMcpTool()` returns a content-wrapped object, not a plain parsed
-      response. Parse records like this:
-      ```js
-      function records(res) {
-        try {
-          let obj = res;
-          if (typeof res === "string") obj = JSON.parse(res);
-          if (obj && obj.content) {
-            const text = Array.isArray(obj.content)
-              ? obj.content[0].text : obj.content;
-            obj = typeof text === "string" ? JSON.parse(text) : text;
-          }
-          return obj.data.domain.explorationsQueryV2.records;
-        } catch(e) { return []; }
-      }
-      ```
+    - For the `records()` and `parseClaudeText()` helper implementations, and notes
+      on the platform APIs (`window.cowork.callMcpTool`, `window.cowork.askClaude`)
+      and GraphQL response versioning, load
+      `querying-noibu-data/references/artifact-helpers.md`.
 
 3. **After all fetches resolve**, generate the **Key Findings & Recommended
    Actions** section dynamically by calling `window.cowork.askClaude()` with
@@ -269,15 +257,8 @@ names. The correct names will already be known from the successful queries above
    callouts for the Segment Overview section, passing each dimension's rows in
    the prompt.
 
-   The return value may be a string or an object — coerce it before use:
-   ```js
-   function toStr(v) {
-     if (typeof v === "string") return v;
-     if (v && typeof v === "object")
-       return v.text || v.content || v.message || JSON.stringify(v);
-     return String(v ?? "");
-   }
-   ```
+   Use `parseClaudeText()` from `querying-noibu-data/references/artifact-helpers.md`
+   to coerce the return value to a string before inserting into the DOM.
 
 4. **Render** using the same visual structure and styling tokens as the
    in-session report. The Key Findings & Recommended Actions section must be

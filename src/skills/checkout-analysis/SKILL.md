@@ -313,34 +313,10 @@ The correct names will already be known from the successful queries above.
     - `callMcpTool()` requires the **fully-qualified** tool name. Use the exact
       tool names that were resolved and confirmed to work during the analysis
       session — do not hardcode or guess them.
-    - Parse records from the wrapped response:
-      ```js
-      function records(res) {
-        try {
-          let obj = res;
-          if (typeof res === "string") obj = JSON.parse(res);
-          if (obj && obj.content) {
-            const text = Array.isArray(obj.content)
-              ? obj.content[0].text : obj.content;
-            obj = typeof text === "string" ? JSON.parse(text) : text;
-          }
-          return obj.data.domain.explorationsQueryV2.records;
-        } catch(e) { return []; }
-      }
-      ```
-    - `window.cowork.askClaude()` returns a **response object**, not a plain string.
-      Always unwrap it before inserting into the DOM:
-      ```js
-      function parseClaudeText(res) {
-        if (!res) return '';
-        if (typeof res === 'string') return res;
-        if (Array.isArray(res.content) && res.content[0]?.text) return res.content[0].text;
-        if (typeof res.content === 'string') return res.content;
-        if (typeof res.text === 'string') return res.text;
-        if (typeof res.message === 'string') return res.message;
-        return '';
-      }
-      ```
+    - For the `records()` and `parseClaudeText()` helper implementations, and notes
+      on the platform APIs (`window.cowork.callMcpTool`, `window.cowork.askClaude`)
+      and GraphQL response versioning, load
+      `querying-noibu-data/references/artifact-helpers.md`.
 
 4. **After all fetches resolve**, call `window.cowork.askClaude()` for callouts.
    Always store the result and pass it through `parseClaudeText()` before rendering.
