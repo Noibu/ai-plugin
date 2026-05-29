@@ -22,10 +22,13 @@ artifacts for `callMcpTool` and `askClaude` is how to find them all.
 ## `records(res)` — extract rows from a `callMcpTool` response
 
 Navigates the Noibu GraphQL response envelope to reach the records array.
-The path `obj.data.domain.explorationsQueryV2.records` reflects the current Noibu
-API version (`V2`). If the Noibu API advances to a new version, this path will stop
-returning data and must be updated **here** and in any artifacts already saved to
-users' workspaces — those artifacts bake in the path at generation time.
+Rather than hardcoding the API version (e.g. `explorationsQueryV2`), this
+locates whichever key under `data.domain` matches Noibu's explorations naming
+convention and has a `records` array. A version bump from V2 to V3 (or beyond)
+requires no change here and won't break already-deployed artifacts.
+
+The authoritative source for which version is currently active is Noibu's own
+MCP tool description — the version name appears in its row-cap documentation.
 
 ```js
 function records(res) {
@@ -37,7 +40,12 @@ function records(res) {
         ? obj.content[0].text : obj.content;
       obj = typeof text === "string" ? JSON.parse(text) : text;
     }
-    return obj.data.domain.explorationsQueryV2.records;
+    const domain = obj?.data?.domain;
+    if (!domain) return [];
+    const key = Object.keys(domain).find(
+      k => /explorations/i.test(k) && Array.isArray(domain[k]?.records)
+    );
+    return key ? domain[key].records : [];
   } catch(e) { return []; }
 }
 ```
