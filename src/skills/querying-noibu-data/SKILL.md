@@ -50,6 +50,9 @@ Both query tools require `orderBy` at the `input` level — see **Query Constrai
   `noibu_search_sessions` (or `noibu_get_page_visits`) first.
 - Errors / bugs / crashes — only when the user EXPLICITLY asks. Load
   `references/errors.md`. Not a generic "what to fix" entrypoint.
+- Releases / deploys / theme updates / campaign launches, or "what changed
+  on <date>" — also as a before/after anchor when investigating an error
+  spike or conversion drop → `noibu_list_releases`.
 - Connect / disconnect / list integrations → load `references/integrations.md`.
 - Pasted `console.noibu.com` URL → load `references/console-urls.md`.
 
