@@ -1,6 +1,7 @@
 {
   "name": "noibu",
   "version": "0.1.0",
+  "connectorId": "a53d8516-38be-4a45-bddb-88be145c1e57",
   "description": "Connects Claude to the Noibu MCP server",
   "author": {
     "name": "Noibu",

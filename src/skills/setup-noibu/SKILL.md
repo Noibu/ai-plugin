@@ -17,7 +17,12 @@ Search the registry to check if Noibu is connected:
 search_mcp_registry(keywords: ["noibu"])
 ```
 
-The Noibu connector UUID is: `a53d8516-38be-4a45-bddb-88be145c1e57`
+> **Note on `search_mcp_registry` and `suggest_connectors`.** These are Cowork-internal
+> platform tools. If either is unavailable, tell the user: "I can't check your connector
+> status automatically — you can connect Noibu from the Claude connector directory and
+> then come back here." Do not fail silently.
+
+Read `src/.claude-plugin/plugin.json` for the `connectorId` — this is the Noibu connector UUID, and is the single source of truth for it.
 
 **If connected** (`"connected": true`): Greet the user warmly and confirm Noibu is active. For example:
 
@@ -28,8 +33,10 @@ Then move straight to Phase 2.
 **If not connected** (`"connected": false`): Explain what connecting Noibu unlocks in plain, customer-friendly terms — e.g., the ability to ask natural-language questions about checkout errors, session replays, and revenue impact. Keep it to 2-3 sentences. Then show the connect button:
 
 ```
-suggest_connectors(uuids: ["a53d8516-38be-4a45-bddb-88be145c1e57"], keywords: ["noibu"])
+suggest_connectors(keywords: ["noibu"])
 ```
+
+If the keyword search returns multiple results, disambiguate using the `connectorId` from `plugin.json`: `suggest_connectors(uuids: ["<connectorId>"], keywords: ["noibu"])`.
 
 After showing the button, tell the user:
 
@@ -50,8 +57,8 @@ search_mcp_registry(keywords: ["shopify"])
 ```
 
 - Shopify MCP connector UUID: `80917cb7-3071-4fca-b053-a4262d356c60`
-- Shopify MCP URL: `https://setup.shopify.com/mcp`
-  **If connected** (`"connected": true`): Confirm it briefly and describe what it unlocks. For example:
+
+**If connected** (`"connected": true`): Confirm it briefly and describe what it unlocks. For example:
 
 > "Your Shopify store is connected directly — I can now browse your products, pull order history, check inventory levels, and run store analytics. This works alongside your Noibu data for a complete picture."
 
@@ -60,8 +67,10 @@ Then move on to Phase 3.
 **If not connected** (`"connected": false`): Explain the value in plain terms — e.g., being able to look up products, orders, and customers directly from chat. Then show the connect button:
 
 ```
-suggest_connectors(uuids: ["80917cb7-3071-4fca-b053-a4262d356c60"], keywords: ["shopify"])
+suggest_connectors(keywords: ["shopify"])
 ```
+
+If the keyword search returns multiple results, disambiguate with the UUID: `suggest_connectors(uuids: ["80917cb7-3071-4fca-b053-a4262d356c60"], keywords: ["shopify"])`.
 
 After showing the button, tell the user:
 
@@ -100,7 +109,7 @@ If a connector appears connected but tools are failing, call `noibu_list_integra
 For Shopify MCP specifically, if tools under `mcp__0b59c5c4-496b-46fe-9bd3-6b8e776743c8` are failing, show the reconnect button:
 
 ```
-suggest_connectors(uuids: ["80917cb7-3071-4fca-b053-a4262d356c60"], keywords: ["shopify"])
+suggest_connectors(keywords: ["shopify"])
 ```
  
 ---

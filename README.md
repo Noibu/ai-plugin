@@ -68,6 +68,17 @@ why they aren't converting, and execute on the biggest opportunities.
 Shift marketing spend with site behaviour**: Surface which campaigns are sending high-quality traffic, identify
 how to lift upper-funnel conversion, and reallocate budget accordingly.
 
+## Maintaining this plugin
+
+### Connector configuration
+
+Two values identify this plugin's connection points and must be kept up to date when the connector changes (e.g. when moving from self-hosted to the Claude marketplace, or rotating the connector registration):
+
+| Value | File | What it is |
+|---|---|---|
+| `connectorId` | `src/.claude-plugin/plugin.json` | Cowork connector registry UUID. Update this whenever the connector is re-registered. |
+| `url` | `src/.mcp.json` | MCP server HTTP endpoint. Update this if the Noibu MCP server address changes. |
+
 ## License
 
 MIT
