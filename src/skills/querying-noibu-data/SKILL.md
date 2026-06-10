@@ -48,6 +48,11 @@ Both query tools require `orderBy` — see **Query Constraints**.
   "purchase journey chart" → load `references/funnel-visualization.md`.
   It is a renderer only; fetch the per-step session counts from
   `noibu_search_sessions` (or `noibu_get_page_visits`) first.
+- "Is poor conversion technical or not", "would fixing bugs move conversion",
+  "technical drag factor", "tech vs non-tech conversion loss" — attributing a
+  conversion gap to technical vs non-technical causes → the
+  `conversion-technical-drag` skill owns that workflow (this guide still
+  governs its underlying `noibu_*` calls).
 - Errors / bugs / crashes — only when the user EXPLICITLY asks. Load
   `references/errors.md`. Not a generic "what to fix" entrypoint.
 - Releases / deploys / theme updates / campaign launches, or "what changed
@@ -111,7 +116,8 @@ technical questions about errors. Lead with analytics.
 - "Why is checkout broken?" → Could be analytics or technical. Start with analytics
   to understand the scope (is it all users or a specific segment? when did it start?).
   Ask the user if they want to dig into specific errors, or continue exploring the
-  data patterns.
+  data patterns. If the question sharpens into "is the conversion problem technical
+  at all?", that fork has a structured owner — the `conversion-technical-drag` skill.
 - "How is my site performing?" → Analytics first (sessions, page visits, time series).
 - "What errors are happening?" → Now it's explicitly technical. Load `references/errors.md`.
 

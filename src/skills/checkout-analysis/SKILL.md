@@ -111,6 +111,7 @@ they depend on what the data shows.
 | ATC → checkout start rate unexpectedly low | Use the user journeys tool anchored to `/cart` to see what users do instead of proceeding |
 | Suspicion that a market blocks at checkout | Group by country filtered to cart-adding sessions — near-zero CVR in a high-traffic country usually means a shipping restriction or missing payment method |
 | Active priority errors returned | Use the error detail tool on the top 1–2 issues; include humanId and title so a developer can find them in the console |
+| Priority errors present and the question becomes how much they actually drag completion | Run the `conversion-technical-drag` skill scoped to the checkout page-group — checkout URLs are exactly the page-group grain its methodology trusts. Use this skill's session-grain funnel-depth completion rates as a cross-check on its visit-weighted results, not as inputs to its loss terms |
 | Discount rate very high (>50% of checkout sessions) | Flag as a business observation — high promotion dependency is a margin risk; no Noibu follow-up needed |
 | A delivery method with unusually high median shipping cost | Cross-tab by country to check if it's concentrated in one market |
 

@@ -1,6 +1,6 @@
 ---
 name: tech-diagnosis
-description: "Diagnose technical issues and Core Web Vital performance problems using Noibu data, and recommend a fix. Use when you want to know why an issue is happening, what's happening with an issue, what's causing errors, the root cause of poor performance on a page, how to fix a technical issue, why an error rate spiked, or where errors are concentrated."
+description: "Diagnose technical issues and Core Web Vital performance problems using Noibu data, and recommend a fix. Use when you want to know why an issue is happening, what's happening with an issue, what's causing errors, the root cause of poor performance on a page, how to fix a technical issue, why an error rate spiked, or where errors are concentrated. Requires a tech signal already in hand; for cause-unknown conversion gaps ('why is conversion low on this page?'), run conversion-technical-drag first to establish whether a technical signal exists."
 ---
 
 # Tech Diagnosis
@@ -13,9 +13,11 @@ Diagnostic skill for a known tech signal — an error, a poor performance metric
 
 **Direct invocations:** "why is LCP poor on checkout", "what's causing errors on Safari mobile", "diagnose this", "find the root cause", "what's behind this drop".
 
-**Handoff invocations** (from other analysis skills, often with structured context — domain, segment, page group, window, behavioral signal — already attached): "check for tech causes", "investigate the technical side", "are there errors affecting [segment]".
+**Handoff invocations** (from other analysis skills, often with structured context — domain, segment, page group, window, behavioral signal — already attached): "check for tech causes", "investigate the technical side", "are there errors affecting [segment]". The most common structured source is the `conversion-technical-drag` skill, which hands off when its verdict is tech-dominant or it finds concentrated high-severity issues (e.g. "tovfurniture / PDP group / desktop LCP>4s cohort / 30d / slow visits convert 0% vs 13.9% same-page clean").
 
 **Do NOT trigger** on open-ended lookups ("is my LCP slow?", "how many errors do I have?"). Those are direct MCP queries.
+
+**Do NOT trigger** on cause-unknown conversion questions ("why is conversion low on X?" with no tech signal in hand). This skill explains a signal already identified; the `conversion-technical-drag` skill establishes whether a technical signal exists at all, and hands off here when one does.
 
 ---
 

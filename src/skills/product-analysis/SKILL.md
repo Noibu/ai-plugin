@@ -7,6 +7,8 @@ description: "Analyze product and collection performance using Noibu data. Use w
 
 This skill has two entry points. Read the user's prompt carefully before doing anything.
 
+**Routing boundary:** this skill owns catalog-level discovery and engagement diagnosis — which products underperform, views→ATC at session grain, scroll and click behaviour. If the user is asking for *attribution* — "is the conversion problem technical or not", "would fixing bugs move conversion", a technical-vs-non-technical split for a page — route to the `conversion-technical-drag` skill instead. The handoff runs both ways: when that skill's verdict is non-technical, the right cross-check is this skill's session-grain view→ATC funnel (engaged-but-not-adding and adding-but-not-buying point at different levers).
+
 ## Quick answer — focused questions
 
 If the user asked a specific, focused question ("which products get the most views?",
@@ -107,6 +109,7 @@ Follow-up queries are not predetermined — they depend on what the data shows.
 | If you see this… | Consider this follow-up |
 |---|---|
 | Product in top-20 views but low view-to-ATC rate | Page-level deep-dive: scroll depth, time on page, click engagement, errors — low scroll depth is the most common explanation |
+| Page underperforms expectation but engagement looks healthy (good scroll depth, normal clicks) | Run the `conversion-technical-drag` skill on the page or its page-group before recommending actions — it splits the gap into technical vs non-technical so the action routes to the right team |
 | Product with strong ATC but weak purchase completion | Funnel depth breakdown: filter to sessions that viewed this product and group by funnel depth to see exactly where they stop |
 | Collection with CVR well below site average | Country breakdown: filter to sessions that viewed this collection and group by country — near-zero CVR in multiple LATAM or non-primary markets usually means a localization or checkout gap, not a product problem |
 | A collection's CVR well below others in same category | Product mix drill-down: filter sessions by collection and group by viewed product titles to see which products in the collection are and aren't converting |

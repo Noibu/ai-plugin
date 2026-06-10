@@ -74,7 +74,7 @@ Surface a ranked list of high-confidence revenue opportunities using Noibu behav
 
 - Target: 3 opportunities
 - Only surface signals where the gap is material, segment meets the percentage threshold below, and finding is actionable
-- Do not hypothesize causes — that happens in investigation
+- Do not hypothesize causes — that happens in investigation. For Experience and Product cards, investigation usually means the `conversion-technical-drag` skill — it types the opportunity as tech-recoverable vs merch-recoverable, which determines who the card routes to
 - Every area in scope must produce a card or an explicit note that nothing qualified
 
 **Thresholds:**
@@ -86,6 +86,7 @@ Surface a ranked list of high-confidence revenue opportunities using Noibu behav
 - Peer group (same page type, channel, device) — preferred
 - Site average — fallback for Acquisition and Funnel
 - Device benchmark or historical period — for regressions
+- This peer-group hierarchy mirrors the baseline the `conversion-technical-drag` skill uses for its mix-adjusted expected rate. The philosophy matches but the rates don't transfer — its baselines are visit-level at page-group grain and it defaults to 30 days vs this skill's 7–14 — so if both run in one session, align window and segment definitions; never substitute one skill's rates into the other's math
 
 **Caveats** (attach to the card's impact, not separately):
 - Segment below 1% of total sessions: "directional — low volume"
@@ -106,6 +107,7 @@ Surface a ranked list of high-confidence revenue opportunities using Noibu behav
 - Gap: `(Baseline revenue per session - Segment revenue per session) x segment sessions x 2.17` = monthly impact (2.17 = 30.4 avg days/month ÷ 14-day window, scaling the trend period to a monthly estimate)
 - Underleveraged: `Segment revenue per session x estimated incremental sessions` — state the growth assumption explicitly, use conservative multiplier
 - Always name the baseline (site average, peer group, device benchmark)
+- If a `conversion-technical-drag` analysis has already been run for the segment, optionally split the monthly impact by its **conservative, mix-adjusted** technical share (it reports several shares; that one is the fair comparison denominator) — `impact × share` is the engineering-recoverable slice, the remainder is merchandising. Never run a drag analysis just for this split
 - Express as a monthly range rounded to nearest $500
 - For paid channels: note if return on ad spend data is unavailable
 
@@ -124,6 +126,8 @@ Surface a ranked list of high-confidence revenue opportunities using Noibu behav
 - Same as last week: `background: var(--color-background-secondary); color: var(--color-text-secondary); border: 0.5px solid var(--color-border-tertiary)`
 
 **Note on `sendPrompt`.** The "Investigate" button on each card and the "Schedule digest" / "Skip" buttons in the scheduling form (Step 6) all call `sendPrompt(text)` — a global function Cowork injects into the widget execution context when HTML is rendered through `show_widget`. It is **not a standard browser API**. If Cowork moves this to a different namespace (e.g. `window.cowork.sendPrompt`), every `sendPrompt(...)` call site in both templates below needs to be updated.
+
+**Investigate-button phrasing for Experience and Product cards.** The fired prompt arrives in a fresh turn where this skill's body may not be loaded, so the routing has to ride in the prompt text itself: phrase it as the attribution question — `Look into this opportunity: [Title] - [segment, gap size, trend in one sentence]. Is this conversion gap technical or non-technical?` — so it routes to the `conversion-technical-drag` skill. Acquisition and Funnel cards keep the generic "What should we look at first?" phrasing.
 
 **Card template — repeat once per opportunity inside a single outer div:**
 

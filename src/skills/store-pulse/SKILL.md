@@ -144,6 +144,7 @@ Shared by Open flow step 3 and Setup step 5.
 Read `SP_CONFIG` from the existing artifact, mutate, re-render via `scripts/render_dashboard.py`, call `mcp__cowork__update_artifact`. Never recreate unless missing.
 
 - **Block change** → update `blocks`, update artifact.
+- **Tech-drag tile request** ("track technical drag on the dashboard") → blocks are a fixed v1 set; there is no tech-drag block. Offer to run the `conversion-technical-drag` skill for an on-demand read instead. If such a block is ever added, that skill's dashboard rule applies: group-grain conservative drag factor only — per-URL drag scores flip on single conversions and don't belong on an auto-refreshing display.
 - **Domain change** — single-domain in v1, so this *replaces* the dashboard:
   1. `noibu_list_domains`, match the new name with Setup step 1's logic. If not found, list what's available and stop.
   2. Confirm before mutating: > "Switching your Store Pulse from [current] to [new] — this replaces the existing dashboard's data source. Continue?"

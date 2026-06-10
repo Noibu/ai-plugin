@@ -79,6 +79,14 @@ the site-wide conversion rate** from this data (total sessions ÷ total purchase
 across all segments) and use it as the benchmark for calling out segments that
 are notably over- or under-performing.
 
+If the `conversion-technical-drag` skill runs in the same session, align with it
+on window and segment definitions rather than handing over rates: its baselines
+are visit-level at page-group grain per its methodology, while these tables are
+session-grain and site-wide. Use these tables as a cross-check on its numbers,
+never as a substitute (pooled visit-level clean rates run 16–30% below
+session-grain figures) — and neither skill should fall back to stored
+convenience constants.
+
 Identify the 2–4 most interesting signals using the diagnostic playbook below.
 Follow-up queries are not predetermined — they depend on what the data shows.
 
@@ -89,6 +97,7 @@ Follow-up queries are not predetermined — they depend on what the data shows.
 | A paid social channel with high traffic share but very low conversion | Break down by individual campaign to find which ones are dragging the channel down |
 | One channel converting 5–10x better than others | Go deeper on that channel — by campaign or source — to find opportunities to scale it |
 | Mobile conversion notably lower than desktop (or vice versa) | Break down by funnel stage and device — to find where specifically shoppers are dropping off |
+| A segment underperforms and the question is whether the gap is technical (errors, slow pages) or intrinsic to the segment | Run the `conversion-technical-drag` skill on the segment's highest-traffic page-group, filtered to that segment — it compares clean vs degraded cohorts inside one segment at a time. A segment that underperforms *with clean vitals* is this skill's finding, and the strongest non-technical evidence; neither skill should re-derive the other's half |
 | A large share of sessions with no channel attribution | Look at landing pages or referral sources to understand what's driving untagged traffic |
 | Revenue per session and conversion rate moving in opposite directions for a segment | Flag as likely a currency or order value difference — may not need a follow-up query |
 
