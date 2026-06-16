@@ -21,7 +21,7 @@ Authentication to Noibu happens **only** through Claude's built-in connector sys
 3. Surface the official Noibu connector using the connector registry. Search for the `suggest_connectors` tool in the `mcp-registry` server (load it via ToolSearch first if needed) and call it for Noibu. This renders an interactive Connect button that runs Claude's real connector OAuth flow.
 4. Wait. Do not proceed until a Noibu tool call succeeds. Re-test by calling a lightweight Noibu tool again.
 
-### 🚫 Absolute prohibitions — read before doing anything
+### Absolute prohibitions — read before doing anything
 
 You MUST authenticate through Claude's native connector system and nothing else. The following are **strictly forbidden** in this skill, with no exceptions:
 
