@@ -11,18 +11,22 @@ You're running the Noibu onboarding flow for a customer who's getting set up. Wo
 
 ## Step 1 — Authenticate to Noibu
 
-Authentication runs through the Noibu connector bundled with this plugin, which exposes its own sign-in tools. You don't build or reason about the sign-in mechanics yourself — those tools do. Your job is to start the flow, relay the link the user needs to open, and wait until a real Noibu tool call succeeds.
+Authentication runs through the Noibu connector bundled with this plugin, which exposes its own sign-in tools. You don't build or reason about the sign-in mechanics yourself — those tools do. Your job is to make sure the connector is installed, start the sign-in flow, relay the link the user needs to open, and wait until a real Noibu tool call succeeds.
 
 **How to do it:**
 
 1. Attempt to call any lightweight Noibu tool (for example, resolving the store's domain). If it succeeds, the user is already connected — skip to Step 2.
-2. If it fails because the connector needs sign-in (the only Noibu tools available are its `authenticate` / `complete_authentication` tools, or the call returns an authentication error), start the flow by calling the Noibu connector's authenticate tool — `mcp__plugin_noibu_noibu__authenticate` (load it via ToolSearch first if it isn't already available). It returns an authorization link.
-3. Share that link with the user and ask them to open it and sign in:
+2. **Make sure the bundled Noibu connector is installed.** The connector ships with this plugin but is often *available but not yet installed* — when that's the case, none of the Noibu tools are present at all (not even the `authenticate` / `complete_authentication` tools). If no Noibu tools are available, the user needs to install it before anything else can happen:
+   > "The Noibu connector comes with this plugin but isn't installed yet. Please install it so I can connect to your account: open your connectors and install **Noibu** from the available list. (In Claude Code you can run `/mcp`, select **Noibu**, and install it.)"
+
+   Wait for the user to confirm it's installed, then re-check for Noibu tools (load them via ToolSearch if needed) before continuing.
+3. Once the connector is installed but you still get an authentication error (the only Noibu tools available are its `authenticate` / `complete_authentication` tools), start the sign-in flow by calling the Noibu connector's authenticate tool — `mcp__plugin_noibu_noibu__authenticate` (load it via ToolSearch first if it isn't already available). It returns an authorization link.
+4. Share that link with the user and ask them to open it and sign in:
    > "I need to connect to your Noibu account. Please open this link to sign in: <link>"
-4. After they authorize:
+5. After they authorize:
    - Usually the connection completes on its own and the full set of Noibu tools becomes available. Re-test by calling a lightweight Noibu tool.
    - If their browser instead lands on a page that won't load (a `localhost` address), that's expected on a remote session — the link in the address bar is still valid. Ask them to copy that full URL and paste it back, then pass it to `mcp__plugin_noibu_noibu__complete_authentication` as `callback_url` to finish.
-5. Wait. Do not proceed until a Noibu tool call actually succeeds. Re-test by calling a lightweight Noibu tool again.
+6. Wait. Do not proceed until a Noibu tool call actually succeeds. Re-test by calling a lightweight Noibu tool again.
 
 ### Guardrails
 
