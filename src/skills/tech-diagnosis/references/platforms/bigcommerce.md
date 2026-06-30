@@ -14,5 +14,18 @@
 - External scripts added via Script Manager from third-party domains
 - Any CDN not matching BigCommerce or the store domain
 
+## Telemetry (discard)
+Analytics, pixel, and beacon scripts — non-actionable, discard silently:
+- `connect.facebook.net/` — Meta Pixel
+- `www.google-analytics.com/` — Google Analytics
+- `cdn.heapanalytics.com/` — Heap
+- `js.posthog.com/` — PostHog
+- `snap.licdn.com/` — LinkedIn Insight Tag
+- `sc-static.net/` — Snapchat Pixel
+- `bat.bing.com/` — Microsoft/Bing Ads
+- `cdn.segment.com/` — Segment
+- `cdn.amplitude.com/` — Amplitude
+- `analytics.tiktok.com/` — TikTok Pixel
+
 ## HTTP errors without JS stack traces
-403 errors on BigCommerce are often from the platform's access control or DDoS protection. 429 may be API rate limits. Flag as infrastructure.
+Any 4XX or 5XX error with no JavaScript stack trace is classified as Platform and discarded. On BigCommerce this is typically DDoS protection (403), API rate limits (429), or missing assets (404).

@@ -76,3 +76,13 @@ Once all steps are answered, **always write `$HOME/.tech-diagnosis-config.json` 
 > "All set — [one-line summary, e.g. 'Shopify and Chrome are connected, code repo skipped for now.']. Let's get into the diagnosis."
 
 Then proceed into the skill — if a domain was already provided, continue with Setup from where it left off.
+
+---
+
+## Mid-flow GitHub setup (triggered by "Apply the fix automatically")
+
+When the operator clicks "Apply the fix automatically" and GitHub is not yet connected (status unset or skipped), skip the full setup flow and go straight to GitHub only:
+
+> "To apply fixes automatically I need access to your code repo. Go to **Settings → Connectors → Add custom connector** and enter `http://api.githubcopilot.com/mcp` as the MCP address, then install the GitHub app at https://github.com/apps/claude-github-mcp-connector. Let me know once both are done."
+
+Wait for confirmation, then ask for the repo name, save to config, and proceed with applying the fix.

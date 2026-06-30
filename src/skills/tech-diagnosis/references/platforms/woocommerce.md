@@ -17,5 +17,18 @@
 ## Note on plugin vs theme errors
 Errors in `/wp-content/plugins/` may be fixable if it's a merchant-owned or agency-built plugin, or vendor issues if it's a purchased/free third-party plugin. Use the plugin name to determine ownership — merchant-built plugins are usually named after the store or agency.
 
+## Telemetry (discard)
+Analytics, pixel, and beacon scripts — non-actionable, discard silently:
+- `connect.facebook.net/` — Meta Pixel
+- `www.google-analytics.com/` — Google Analytics
+- `cdn.heapanalytics.com/` — Heap
+- `js.posthog.com/` — PostHog
+- `snap.licdn.com/` — LinkedIn Insight Tag
+- `sc-static.net/` — Snapchat Pixel
+- `bat.bing.com/` — Microsoft/Bing Ads
+- `cdn.segment.com/` — Segment
+- `cdn.amplitude.com/` — Amplitude
+- `analytics.tiktok.com/` — TikTok Pixel
+
 ## HTTP errors without JS stack traces
-403 errors are typically WordPress access control or a security plugin (Wordfence, etc.). 429 may be rate limiting. Flag as infrastructure.
+Any 4XX or 5XX error with no JavaScript stack trace is classified as Platform and discarded. On WooCommerce this is typically access control (403), rate limiting (429), or security plugin blocks (Wordfence, etc.).

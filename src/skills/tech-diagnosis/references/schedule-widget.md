@@ -1,8 +1,8 @@
 # Scheduling widget
 
-Called from Step P3.5. Render automatically — no conversational prompt. Load `show_widget` via ToolSearch and call it with `title: "schedule_tech_scan"` and loading messages `["Setting up schedule..."]`.
+Triggered when the operator clicks the "Schedule recurring scan" button from Step P3.5. Load `show_widget` via ToolSearch and call it with `title: "schedule_tech_scan"` and loading messages `["Setting up schedule..."]`.
 
-The widget renders **collapsed by default**. The operator clicks to expand when ready. This keeps it visible without competing with the findings cards above.
+The widget renders fully expanded.
 
 ## Widget
 
@@ -16,58 +16,44 @@ The widget renders **collapsed by default**. The operator clicks to expand when 
 </style>
 
 <div style="border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);background:var(--color-background-primary);overflow:hidden;">
-  <!-- Collapsed header — always visible, click to expand -->
-  <div onclick="toggleSchedule()" style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;cursor:pointer;">
-    <div>
-      <p style="font-size:14px;font-weight:500;color:var(--color-text-primary);margin:0 0 2px;">Schedule recurring scan</p>
-      <p style="font-size:12px;color:var(--color-text-tertiary);margin:0;">Get this report delivered weekly, bi-weekly, or monthly</p>
-    </div>
-    <span id="sched-chevron" style="font-size:18px;color:var(--color-text-tertiary);transition:transform 0.2s;">›</span>
-  </div>
-
-  <!-- Expandable body — hidden by default -->
-  <div id="sched-body" style="display:none;padding:0 20px 20px;border-top:0.5px solid var(--color-border-tertiary);">
-    <div style="height:16px;"></div>
+  <div style="padding:16px 20px 20px;">
     <p style="font-size:15px;font-weight:500;color:var(--color-text-primary);margin:0 0 24px;">Schedule tech scan</p>
 
-  <p class="slabel">Frequency</p>
-  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:24px;" id="freq-wrap">
-    <button class="fcard on" onclick="selectFreq(this)" data-value="weekly"><i class="ti ti-calendar" aria-hidden="true"></i>Weekly</button>
-    <button class="fcard" onclick="selectFreq(this)" data-value="biweekly"><i class="ti ti-calendar-stats" aria-hidden="true"></i>Bi-weekly</button>
-    <button class="fcard" onclick="selectFreq(this)" data-value="monthly"><i class="ti ti-calendar-month" aria-hidden="true"></i>Monthly</button>
-  </div>
-
-  <div id="day-section" style="margin-bottom:24px;">
-    <p class="slabel">Day</p>
-    <div style="display:flex;gap:8px;flex-wrap:wrap;">
-      <button class="chip on" onclick="selectDay(this)" data-value="Monday">Mon</button>
-      <button class="chip" onclick="selectDay(this)" data-value="Tuesday">Tue</button>
-      <button class="chip" onclick="selectDay(this)" data-value="Wednesday">Wed</button>
-      <button class="chip" onclick="selectDay(this)" data-value="Thursday">Thu</button>
-      <button class="chip" onclick="selectDay(this)" data-value="Friday">Fri</button>
+    <p class="slabel">Frequency</p>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:24px;" id="freq-wrap">
+      <button class="fcard on" onclick="selectFreq(this)" data-value="weekly"><i class="ti ti-calendar" aria-hidden="true"></i>Weekly</button>
+      <button class="fcard" onclick="selectFreq(this)" data-value="biweekly"><i class="ti ti-calendar-stats" aria-hidden="true"></i>Bi-weekly</button>
+      <button class="fcard" onclick="selectFreq(this)" data-value="monthly"><i class="ti ti-calendar-month" aria-hidden="true"></i>Monthly</button>
     </div>
-  </div>
 
-  <div style="margin-bottom:24px;">
-    <p class="slabel">Time</p>
-    <div style="display:flex;gap:8px;flex-wrap:wrap;" id="time-section">
-      <button class="chip" onclick="selectTime(this)" data-value="7:00 AM">7 am</button>
-      <button class="chip on" onclick="selectTime(this)" data-value="9:00 AM">9 am</button>
-      <button class="chip" onclick="selectTime(this)" data-value="12:00 PM">12 pm</button>
-      <button class="chip" onclick="selectTime(this)" data-value="5:00 PM">5 pm</button>
+    <div id="day-section" style="margin-bottom:24px;">
+      <p class="slabel">Day</p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button class="chip on" onclick="selectDay(this)" data-value="Monday">Mon</button>
+        <button class="chip" onclick="selectDay(this)" data-value="Tuesday">Tue</button>
+        <button class="chip" onclick="selectDay(this)" data-value="Wednesday">Wed</button>
+        <button class="chip" onclick="selectDay(this)" data-value="Thursday">Thu</button>
+        <button class="chip" onclick="selectDay(this)" data-value="Friday">Fri</button>
+      </div>
     </div>
-  </div>
 
-  <p class="slabel">Send to</p>
-  <p style="font-size:12px;color:var(--color-text-tertiary);margin:0 0 10px;">At least one required. Only Email, Slack, and Notion — do not add any other options.</p>
-  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:28px;">
-    [If Email connected:]   <button class="chip" onclick="toggleChip(this)" data-value="email"><i class="ti ti-mail" style="font-size:14px;vertical-align:-1px;margin-right:4px;" aria-hidden="true"></i>Email</button>
-    [If Email not connected:] <button onclick="sendPrompt('Connect email so I can schedule the tech scan digest to it')" style="padding:6px 14px;font-size:13px;font-weight:500;border-radius:100px;border:1px dashed var(--color-border-tertiary);background:var(--color-background-primary);color:var(--color-text-tertiary);cursor:pointer;"><i class="ti ti-mail" style="font-size:14px;vertical-align:-1px;margin-right:4px;" aria-hidden="true"></i>Email <span style="font-size:11px;">+ Connect</span></button>
-    [If Slack connected:]   <button class="chip" onclick="toggleChip(this)" data-value="slack"><i class="ti ti-brand-slack" style="font-size:14px;vertical-align:-1px;margin-right:4px;" aria-hidden="true"></i>Slack</button>
-    [If Slack not connected:] <button onclick="sendPrompt('Connect Slack so I can schedule the tech scan digest to it')" style="padding:6px 14px;font-size:13px;font-weight:500;border-radius:100px;border:1px dashed var(--color-border-tertiary);background:var(--color-background-primary);color:var(--color-text-tertiary);cursor:pointer;"><i class="ti ti-brand-slack" style="font-size:14px;vertical-align:-1px;margin-right:4px;" aria-hidden="true"></i>Slack <span style="font-size:11px;">+ Connect</span></button>
-    [If Notion connected:]  <button class="chip" onclick="toggleChip(this)" data-value="notion"><i class="ti ti-brand-notion" style="font-size:14px;vertical-align:-1px;margin-right:4px;" aria-hidden="true"></i>Notion</button>
-    [If Notion not connected:] <button onclick="sendPrompt('Connect Notion so I can schedule the tech scan digest to it')" style="padding:6px 14px;font-size:13px;font-weight:500;border-radius:100px;border:1px dashed var(--color-border-tertiary);background:var(--color-background-primary);color:var(--color-text-tertiary);cursor:pointer;"><i class="ti ti-brand-notion" style="font-size:14px;vertical-align:-1px;margin-right:4px;" aria-hidden="true"></i>Notion <span style="font-size:11px;">+ Connect</span></button>
-  </div>
+    <div style="margin-bottom:24px;">
+      <p class="slabel">Time</p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;" id="time-section">
+        <button class="chip" onclick="selectTime(this)" data-value="7:00 AM">7 am</button>
+        <button class="chip on" onclick="selectTime(this)" data-value="9:00 AM">9 am</button>
+        <button class="chip" onclick="selectTime(this)" data-value="12:00 PM">12 pm</button>
+        <button class="chip" onclick="selectTime(this)" data-value="5:00 PM">5 pm</button>
+      </div>
+    </div>
+
+    <p class="slabel">Send to</p>
+    <p style="font-size:12px;color:var(--color-text-tertiary);margin:0 0 10px;">At least one required. Only Email, Slack, and Notion — do not add any other options.</p>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:28px;">
+      <button class="chip on" onclick="toggleChip(this)" data-value="email"><i class="ti ti-mail" style="font-size:14px;vertical-align:-1px;margin-right:4px;" aria-hidden="true"></i>Email</button>
+      <button class="chip" onclick="toggleChip(this)" data-value="slack"><i class="ti ti-brand-slack" style="font-size:14px;vertical-align:-1px;margin-right:4px;" aria-hidden="true"></i>Slack</button>
+      <button class="chip" onclick="toggleChip(this)" data-value="notion"><i class="ti ti-brand-notion" style="font-size:14px;vertical-align:-1px;margin-right:4px;" aria-hidden="true"></i>Notion</button>
+    </div>
 
     <div style="display:flex;justify-content:flex-end;align-items:center;gap:12px;border-top:0.5px solid var(--color-border-tertiary);padding-top:16px;">
       <button onclick="sendPrompt('Skip scheduling for now')" style="padding:7px 16px;font-size:13px;font-weight:500;color:var(--color-text-secondary);background:transparent;border:none;cursor:pointer;">Skip</button>
@@ -77,13 +63,6 @@ The widget renders **collapsed by default**. The operator clicks to expand when 
 </div>
 
 <script>
-function toggleSchedule(){
-  const body=document.getElementById('sched-body');
-  const chevron=document.getElementById('sched-chevron');
-  const open=body.style.display==='none';
-  body.style.display=open?'block':'none';
-  chevron.style.transform=open?'rotate(90deg)':'';
-}
 function toggleChip(el){el.classList.toggle('on');}
 function selectDay(el){document.querySelectorAll('#day-section .chip').forEach(b=>b.classList.remove('on'));el.classList.add('on');}
 function selectTime(el){document.querySelectorAll('#time-section .chip').forEach(b=>b.classList.remove('on'));el.classList.add('on');}
@@ -105,9 +84,11 @@ function submitSchedule(){
 
 ## On submit
 
-Ask for any missing delivery details (email address, Slack channel, Notion page) if not already in config. Then create the scheduled task with `create_scheduled_task`. Task name: `tech-scan-[domain]`.
+The widget shows all three delivery chips unconditionally — connection is resolved at submit time, not in the widget. When the user submits:
 
-If a "+ Connect" button is clicked: call `suggest_connectors` with the appropriate UUID (Slack: `597f662f-36de-437e-836e-5a81013cbfbe`; Notion: `69f3a300-cc60-48c4-b237-dfac56530dbf`; Email/Gmail: search registry for "gmail"). After connecting, re-render the widget with that connector unlocked.
+1. For each chosen channel that isn't connected, connect it now via `suggest_connectors` (Slack: `597f662f-36de-437e-836e-5a81013cbfbe`; Notion: `69f3a300-cc60-48c4-b237-dfac56530dbf`; Email/Gmail: search registry for "gmail").
+2. Ask for any missing delivery details (email address, Slack channel, Notion page) if not already in config.
+3. Create the scheduled task with `create_scheduled_task`. Task name: `tech-scan-[domain]`.
 
 ## Scheduled task prompt
 
@@ -118,10 +99,8 @@ If a "+ Connect" button is clicked: call `suggest_connectors` with the appropria
 - Vendor error: `/tech-diagnosis share with vendor #[issue-id] on [domain]`
 - Performance: `/tech-diagnosis fix [LCP|INP|CLS] on [page-url] for [domain]`
 
-**Email:** Subject `Tech scan — [domain] — [date]`. Each finding: title, 1-sentence description, metric/count. Show the Cowork command wrapped in an HTML `<code>` tag to prevent Gmail from auto-linking the domain — e.g. `Open Cowork and type: <code>/tech-diagnosis fix #61 on louloulollipop.com</code>`
+**All channels:** Title = `Tech scan — [domain] — [date]`. Structure: Overview block first, then findings in this fixed order — fixable errors first, then performance issues, then vendor issues. Show up to 2 per category, top 6 total. Do not re-rank across categories (a vendor issue never appears before a fixable error). Each finding: signal type label, one-line finding, occurrence/session count, then the label **"Type the following in Cowork:"** followed immediately by the prompt.
 
-**Slack:** Lead `*Tech scan — [domain]* — [date]`. Each finding with title, one-liner, and "Open Cowork and type:" followed by the command in a code block (backtick-wrapped so it's copyable): `/tech-diagnosis fix #[id] on [domain]`
-
-**Notion:** Page titled `Tech scan — [domain] — [date]` with sections (Issues you can fix / Vendor issues / Performance). Each finding as a callout block with title and description, followed by a text line "Open Cowork and type:" and then the prompt as a code block. E.g.:
-> Open Cowork and type:
-> `/tech-diagnosis fix #61 on louloulollipop.com`
+- **Email:** Subject uses the title above. Use "Type the following in Cowork:" as the label before each prompt. Wrap each prompt in `<code>` to stop Gmail auto-linking the domain.
+- **Slack:** Bold the title. Use "Type the following in Cowork:" as plain text before each prompt. Prompts in backtick code blocks on the next line.
+- **Notion:** Page title = digest title. Each priority as a heading + paragraph — do not use callout blocks or blockquotes. Write "Type the following in Cowork:" as a plain line, then the prompt as a fenced code block using triple backticks on the next line — do not escape the backticks.
