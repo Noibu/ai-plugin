@@ -1,4 +1,4 @@
-version: '3'
+version: "3"
 
 # The version in src/.claude-plugin/plugin.json (0.1.0) is a placeholder for local development.
 # CI overrides it with 0.0.<N> derived from git rev-list --count HEAD -- src/ at build time.
@@ -6,7 +6,7 @@ version: '3'
 tasks:
   pack:
     desc: Package the plugin into a versioned zip archive in dist/
-    dir: '{{.TASKFILE_DIR}}'
+    dir: "{{.TASKFILE_DIR}}"
     cmds:
       - |
         NAME=$(jq -r .name src/.claude-plugin/plugin.json)
@@ -14,18 +14,18 @@ tasks:
         OUT="dist/${NAME}-${VERSION}.zip"
         mkdir -p dist
         rm -f "$OUT"
-        (cd src && zip -r "../$OUT" .claude-plugin .mcp.json skills -x '*.DS_Store')
+        (cd src && zip -r "../$OUT" .claude-plugin skills -x '*.DS_Store')
         echo "Packed $OUT"
 
   validate:
     desc: Validate the plugin manifest and skill frontmatter
-    dir: '{{.TASKFILE_DIR}}'
+    dir: "{{.TASKFILE_DIR}}"
     cmds:
       - claude plugin validate ./src
 
   clean:
     desc: Remove packaged archives
-    dir: '{{.TASKFILE_DIR}}'
+    dir: "{{.TASKFILE_DIR}}"
     cmds:
       - rm -rf dist
 
@@ -35,6 +35,6 @@ tasks:
       application support dir. macOS-only, bash 4+. Pass a single skill name
       with `--` (e.g. `task sync -- querying-noibu-data`), or run without args to
       sync every skill.
-    dir: '{{.TASKFILE_DIR}}'
+    dir: "{{.TASKFILE_DIR}}"
     cmds:
       - ./sync-skills.sh {{.CLI_ARGS}}
