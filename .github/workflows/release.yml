@@ -41,7 +41,7 @@ jobs:
       - name: Package plugin
         run: |
           mkdir -p dist
-          cd src && zip -r ../dist/noibu.zip .claude-plugin .mcp.json skills -x '*.DS_Store'
+          cd src && zip -r ../dist/noibu.zip .claude-plugin skills -x '*.DS_Store'
 
       # Restore the committed (versionless) manifest so the mirror push carries the
       # SHA-versioned file, not the stamped one.
