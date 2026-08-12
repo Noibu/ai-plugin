@@ -4,8 +4,8 @@ description: >
     Required reference for calling `noibu_*` tools — field and measure semantics,
     query constraints (the `orderBy` requirement, row caps,
     unique-measure rule), the `rationale` argument convention, and domain
-    resolution. Also covers parsing of pasted `console.noibu.com` URLs and
-    third-party integration management. Loads alongside topical Noibu skills
+    resolution. Also covers parsing of pasted `console.noibu.com` URLs.
+    Loads alongside topical Noibu skills
     (e.g., `checkout-analysis`, `tech-diagnosis`), not instead of them — they
     own routing for their respective domains.
 ---
@@ -53,7 +53,6 @@ Both query tools require `orderBy` — see **Query Constraints**.
 - Releases / deploys / theme updates / campaign launches, or "what changed
   on <date>" — also as a before/after anchor when investigating an error
   spike or conversion drop → `noibu_list_releases`.
-- Connect / disconnect / list integrations → load `references/integrations.md`.
 - Pasted `console.noibu.com` URL → load `references/console-urls.md`.
 
 **Within page-visits — pair metrics and visual when both help. Rows assume a URL is in scope:**
@@ -177,5 +176,4 @@ Load exactly one reference based on the topic of the user's question. Each file 
 | Rendering an ecommerce conversion funnel as a chart ("show the funnel", "checkout funnel chart") | `references/funnel-visualization.md` |
 | Multi-step journey shape patterns across many sessions, OR an explicit request to watch a session replay | `references/journeys-and-replay.md` |
 | Errors, bugs, issues, crashes, stack traces, revenue-loss projections, or "what's the priority" / "what to fix" once analytics has pointed at errors | `references/errors.md` |
-| Connecting, disconnecting, listing, or checking the status of third-party integrations | `references/integrations.md` |
 | A pasted `console.noibu.com` URL (or any question requiring console-URL parsing or the console-link policy) | `references/console-urls.md` |
