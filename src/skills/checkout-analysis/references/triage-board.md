@@ -11,7 +11,7 @@ There is no Supporting-data expander — the Overview folds all the context in. 
 One card with the same chrome as the Priority cards: a header strip with the label **Overview** on the left and `[domain] · [date range]` on the right, then a body holding the funnel, two stat lines, and the payment/delivery charts.
 
 - **Context line** — `[total sessions] · [ATC%] added to cart`.
-- **Funnel** — a store-pulse-style vertical stepped funnel of the checkout stages: Added to cart → Started checkout → Payment submitted → Completed order. Step 1 (Added to cart) is the denominator; its headline is the absolute session count, the rest show **% of cart**. Flag the largest *reliable* step drop with a danger pill (`↓N%`) on that step's header.
+- **Funnel** — a vertical stepped funnel of the checkout stages: Added to cart → Started checkout → Payment submitted → Completed order. Step 1 (Added to cart) is the denominator; its headline is the absolute session count, the rest show **% of cart**. Flag the largest *reliable* step drop with a danger pill (`↓N%`) on that step's header.
   - **Bar scaling — the bar and its connector MUST use the same fraction, or the slope won't meet the bars.** For each step compute one fraction `f = sqrt(stepCount ÷ step1Count)` (so `f₁ = 1`). Then, with `bodyHeight = 150`:
     - Bar height = `round(f × 150)` px.
     - Bar top, measured from the top of the body = `T = round((1 − f) × 100)` %.
