@@ -4,7 +4,7 @@ Reached when the operator selects "Open a ticket" from the closing offer.
 
 Full content always included (Summary + Technical details + Cause + Fix). No widget, no content selection.
 
-## Apply the fix automatically
+## Automatically draft a pull request (PR)
 
 Only available when **both** conditions are met:
 - GitHub tools are active in the session and a repo has been provided

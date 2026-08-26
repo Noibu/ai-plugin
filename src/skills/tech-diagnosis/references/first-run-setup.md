@@ -16,22 +16,9 @@ Send this first, then stop and wait:
 
 ---
 
-## Step 1 — Platform connector (Shopify only)
+## Step 1 — Code repository (GitHub)
 
-**Only relevant if the domain's platform is Shopify.** Skip entirely for other platforms — **do not mention the platform name, do not explain why this step is being skipped, say nothing.**
-
-Check if the Shopify MCP tools are available in the current session (they appear as Shopify tools in the tool list). If they are available, save `status: connected` to config and skip this step — don't ask. If they are not available, send this message and **wait for reply before continuing:**
-
-> "**Shopify** — connecting your store lets me check your actual settings when diagnosing an issue. For example, if a product variant looks like the cause, I can confirm whether it's really out of stock rather than just guessing. Connect, skip for now, or never ask?"
-
-**Outcomes:**
-- **Connect** → call `suggest_connectors` with UUID `80917cb7-3071-4fca-b053-a4262d356c60` and keyword `store`. Ask: "Once connected, let me know — or say 'skip for now' or 'never ask'." Wait for reply. Save `status: connected` on success.
-- **Skip for now** → save nothing. Will ask again next session.
-- **Never ask** → save `status: skipped`. Won't ask again.
-
----
-
-## Step 2 — Code repository
+**Always ask this first.** It unlocks the most: pointing to the exact file and line that needs changing, and drafting a pull request with the fix.
 
 **Before sending the message:** Check if GitHub tools are already available in the session.
 - If GitHub tools **are present**, include the warning variant below — the default connector is read-only and cannot apply fixes.
@@ -39,7 +26,7 @@ Check if the Shopify MCP tools are available in the current session (they appear
 
 **Standard variant** — send and wait for reply:
 
-> "**Code repository** — if your store's theme or code lives in a GitHub repo, connecting it lets me point to the specific file and line that needs changing instead of giving general advice. Connect, skip for now, or never ask?"
+> "**Code repository** — if your store's theme or code lives in a GitHub repo, connecting it lets me point to the specific file and line that needs changing instead of giving general advice, and draft a pull request with the fix. Connect, skip for now, or never ask?"
 
 **Warning variant** — send and wait for reply:
 
@@ -51,6 +38,27 @@ Check if the Shopify MCP tools are available in the current session (they appear
   2. Tell them: "Go to **Settings → Connectors → Add custom connector** and enter `http://api.githubcopilot.com/mcp` as the MCP address. Let me know once it's added."
   3. Wait for confirmation, then tell them: "Now install the GitHub app to grant access to your repo — visit https://github.com/apps/claude-github-mcp-connector and install it on the account or organisation that owns your store's repo. Let me know once that's done."
   4. Once they confirm both steps, ask: "What's the repo? (e.g. `mycompany/my-store`)" — **this is required, not optional**. Wait for reply. Save `status: connected` and `repo` to config.
+- **Skip for now** → save nothing. Will ask again next session.
+- **Never ask** → save `status: skipped`. Won't ask again.
+
+---
+
+## Step 2 — Platform connector (Shopify, fallback only)
+
+**Only ask if BOTH are true:**
+1. **GitHub was not connected in Step 1** — they said skip for now, never ask, or the connection didn't complete.
+2. The domain's platform is Shopify.
+
+If GitHub is connected, skip this step — the repo already exposes the real code, so the store connection adds nothing. If the platform isn't Shopify, skip it too. In either case: **do not mention the step, do not name the platform, do not explain why it's being skipped, say nothing.**
+
+Without repo access this is the next best thing: it exposes the live theme and template settings, so the recommendation can be grounded in the real store instead of a guess.
+
+Check if the Shopify MCP tools are available in the current session (they appear as Shopify tools in the tool list). If they are available, save `status: connected` to config and skip this step — don't ask. If they are not available, send this message and **wait for reply before continuing:**
+
+> "**Shopify** — since I won't have your code repo, connecting your store is the next best thing: it lets me see your live theme and settings when diagnosing an issue. For example, if a product variant looks like the cause, I can confirm whether it's really out of stock rather than just guessing. Connect, skip for now, or never ask?"
+
+**Outcomes:**
+- **Connect** → call `suggest_connectors` with UUID `80917cb7-3071-4fca-b053-a4262d356c60` and keyword `store`. Ask: "Once connected, let me know — or say 'skip for now' or 'never ask'." Wait for reply. Save `status: connected` on success.
 - **Skip for now** → save nothing. Will ask again next session.
 - **Never ask** → save `status: skipped`. Won't ask again.
 
@@ -79,9 +87,9 @@ Then proceed into the skill — if a domain was already provided, continue with 
 
 ---
 
-## Mid-flow GitHub setup (triggered by "Apply the fix automatically")
+## Mid-flow GitHub setup (triggered by "Automatically draft a pull request (PR)")
 
-When the operator clicks "Apply the fix automatically" and GitHub is not yet connected (status unset or skipped), skip the full setup flow and go straight to GitHub only:
+When the operator clicks "Automatically draft a pull request (PR)" and GitHub is not yet connected (status unset or skipped), skip the full setup flow and go straight to GitHub only:
 
 > "To apply fixes automatically I need access to your code repo. Go to **Settings → Connectors → Add custom connector** and enter `http://api.githubcopilot.com/mcp` as the MCP address, then install the GitHub app at https://github.com/apps/claude-github-mcp-connector. Let me know once both are done."
 
