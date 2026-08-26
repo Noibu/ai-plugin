@@ -37,7 +37,7 @@ There is no config file. Connector status is detected at runtime by checking too
 - **Suppress citation sections.**
 - **First visible output is the result, never narration.** No preambles, filler, or "let me pull X".
 - **Never narrate internals.** No tool names, query parameters, API state values, filter logic, or fallback decisions. Retries happen silently.
-- **Pause only at designated points.** Reactive: once after the closing offer widget. Proactive: after findings widget. Open-ended questions only; never AskUserQuestion modals.
+- **Pause only at designated points.** Reactive: the connector check before diagnosis (Stage 1, plus Stage 2 only when GitHub was declined), then once after the closing offer widget. Proactive: after findings widget. Open-ended questions only; never AskUserQuestion modals.
 - **After every `show_widget` call, output one line only.** Proactive: "Select an option on a card above to get started." Reactive (closing offer): "Select an option above, or choose another issue to fix." No summary, no recap, nothing else.
 - **Page criticality is internal only.** Checkout > Cart > PDP > Collection > Home > Other. Never a labeled field.
 - **Name third-party services specifically.** Stack trace says Klaviyo, GTM, Shop Pay → use that name.
@@ -276,14 +276,35 @@ Read `references/schedule-widget.md` and render it as a `show_widget`. No prose 
 
 Silently check which tools are available in the current session: GitHub, Claude in Chrome, and (if platform is Shopify) Shopify.
 
-If any are missing, send **one combined message** and wait for a single reply before continuing — do not step through them one at a time:
+Runs in two stages. **Shopify is GitHub's fallback, so it is only ever asked once the GitHub outcome is known.** Never offer both in the same message.
 
-> "Before I start — connecting **[list of missing connectors]** would give more accurate results. [One-line benefit per connector, e.g. 'GitHub lets me point to the exact file and line to fix. Chrome lets me run live page tests.'] Want to connect any of these, or should I go ahead without them?"
+The messages below are the copy to send, verbatim. Include only the bullets for connectors that are actually missing, and drop a bullet entirely rather than rewording it.
 
-- If they want to connect something: call `suggest_connectors` for each (GitHub: `fe983ccb-92c7-4df1-85af-b1c3340b89bb`; Shopify: `80917cb7-3071-4fca-b053-a4262d356c60`; Chrome: direct them to Settings → Customize). Wait for confirmation, then proceed.
-- If they skip or say go ahead: proceed immediately, no follow-up.
+### Stage 1 — GitHub and Chrome
 
-If all tools are already available, proceed immediately with no message.
+If both are already available, send nothing and go to Stage 2. Otherwise send **one combined message** and wait for a single reply — do not step through them one at a time:
+
+> "Before I start — a couple of connections would make this more accurate:
+> - **GitHub** — lets me point to the exact file and line that's broken, and draft a PR with the fix.
+> - **Claude in Chrome** — lets me open your live pages in a real browser and run performance tests, which matters most on mobile.
+>
+> Want to connect any of these, or should I go ahead without them?"
+
+If only one of the two is missing, keep the same shape with a single bullet, but make the whole message singular: open with "one quick connection would make this more accurate:" and close with "Want to connect it, or should I go ahead without it?"
+
+For anything they choose to connect: call `suggest_connectors` (GitHub: `fe983ccb-92c7-4df1-85af-b1c3340b89bb`; Chrome: direct them to Settings → Customize). Wait for confirmation.
+
+### Stage 2 — Shopify (only if GitHub is still unconnected)
+
+After Stage 1 resolves, ask this **only if all three are true:** GitHub is still not connected (declined, or the connection didn't complete), the platform is Shopify, and Shopify tools aren't already available.
+
+If GitHub is connected, skip this stage — the repo covers it. **Do not mention Shopify, do not explain why it's being skipped, say nothing.** Same if the platform isn't Shopify.
+
+> "Since I won't have your code repo — connecting **Shopify** lets me check your live theme and settings, so the fix is based on your real store rather than a guess. Want to connect it, or go ahead without it?"
+
+If they connect: call `suggest_connectors` with UUID `80917cb7-3071-4fca-b053-a4262d356c60` and keyword `store`. Wait for confirmation.
+
+If they skip or say go ahead at either stage: proceed immediately, no follow-up. If all tools are already available, proceed immediately with no message at all.
 
 ## Tasks
 - Understanding the issue
@@ -336,7 +357,7 @@ See `references/errors.md` and `references/performance.md` for guidance.
 Determine the fix internally but **do not render it yet**. Commit to the most likely fix; note alternatives in one sentence. Load `show_widget` (`title: "next_steps"`, loading: `["What's next..."]`). Nothing renders after the widget.
 
 **Button visibility:**
-- **"Apply the fix automatically"** — always shown. If GitHub tools are not active in the session, clicking it triggers GitHub setup. If fix is not a code change, show disabled with explanation.
+- **"Automatically draft a pull request (PR)"** — always shown. If GitHub tools are not active in the session, clicking it triggers GitHub setup. If fix is not a code change, show disabled with explanation.
 - **"Show me the fix"** — always.
 - **"Open a ticket"** — hide only if all ticket connectors explicitly declined.
 - **"Share findings"** — always.
@@ -346,13 +367,13 @@ Determine the fix internally but **do not render it yet**. Commit to the most li
   <p style="font-size:13px;font-weight:500;color:var(--color-text-primary);margin:0 0 16px;">What would you like to do next?</p>
   [If fix is not a code change → disabled:]
   <div style="display:block;width:100%;padding:12px 16px;background:var(--color-background-secondary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);margin-bottom:8px;opacity:0.5;cursor:not-allowed;">
-    <p style="font-size:14px;font-weight:500;color:var(--color-text-tertiary);margin:0 0 4px;">Apply the fix automatically</p>
+    <p style="font-size:14px;font-weight:500;color:var(--color-text-tertiary);margin:0 0 4px;">Automatically draft a pull request (PR)</p>
     <p style="font-size:12px;color:var(--color-text-tertiary);margin:0;">The fix for this issue isn't a code change — there's no file to edit automatically.</p>
   </div>
-  [All other cases → active. Label: "Apply the fix automatically"]
-  <div onclick="sendPrompt('Apply the fix automatically')" style="display:block;width:100%;padding:12px 16px;background:var(--color-background-secondary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);cursor:pointer;margin-bottom:8px;">
+  [All other cases → active. Label: "Automatically draft a pull request (PR)"]
+  <div onclick="sendPrompt('Automatically draft a pull request (PR)')" style="display:block;width:100%;padding:12px 16px;background:var(--color-background-secondary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);cursor:pointer;margin-bottom:8px;">
     <p style="font-size:14px;font-weight:500;color:var(--color-text-primary);margin:0 0 3px;">[Label] ↗</p>
-    <p style="font-size:12px;color:var(--color-text-tertiary);margin:0;">[low|medium|high] risk · test on preview before publishing</p>
+    <p style="font-size:12px;color:var(--color-text-tertiary);margin:0;">[low|medium|high] risk · Accept PR to apply fix</p>
   </div>
   <button onclick="sendPrompt('Show me the fix')" style="display:block;width:100%;text-align:left;padding:12px 16px;font-size:14px;font-weight:500;color:var(--color-text-primary);background:var(--color-background-secondary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);cursor:pointer;margin-bottom:8px;">Show me the fix ↗</button>
   [If ticket connectors not all skipped. Label: 0→"Open a ticket"; 1→"Open a ticket in [connector] — [team]"; 2+→"Open a ticket in [first] & [n] more"]
