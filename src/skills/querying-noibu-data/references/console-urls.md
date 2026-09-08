@@ -17,6 +17,8 @@ The Noibu console lives at `https://console.noibu.com`. When the user pastes a c
 | `/<domainId>/sessions` | Sessions list | Route to `noibu_search_sessions`. |
 | `/<domainId>/performance/<webVitalMetric>` | Per-vital performance | `<webVitalMetric>` ∈ LCP / CLS / INP / FCP / TTFB / FID. Route to `noibu_get_page_visits` with the matching field. |
 | `/<domainId>/pages/<tab>` | Pages section — `<tab>` ∈ `heat-maps`, `performance`, `issues`, `journeys` | |
+| `/<domainId>/ab-tests/<testId>` | Single AB test | `<testId>` is the numeric `id`, NOT the test's `key`. Pass it as `testId` to `noibu_get_ab_test_results` for the verdict/results, or match it in `noibu_list_ab_tests` for config only. |
+| `/<domainId>/ab-tests` | AB tests list | Route to `noibu_list_ab_tests`. |
 
 **Read the query params.** When the URL has a query string (e.g. `?view=priority`, `?utm_source=...`, `?url=/checkout`, `?manuallyVerified=IMPACT`), translate each param to the equivalent filter on whichever tool you route to. The console's URL params name the filters the user is currently looking at — matching them in your tool call gives the user data on the same scope they were viewing.
 

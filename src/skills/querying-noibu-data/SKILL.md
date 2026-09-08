@@ -53,6 +53,10 @@ Both query tools require `orderBy` — see **Query Constraints**.
 - Releases / deploys / theme updates / campaign launches, or "what changed
   on <date>" — also as a before/after anchor when investigating an error
   spike or conversion drop → `noibu_list_releases`.
+- AB tests / experiments — "what tests do we have", "is an experiment
+  running", "which variation is winning", "did the test work", "is it safe
+  to ship" → load `references/ab-tests.md` (`noibu_list_ab_tests`,
+  `noibu_get_ab_test_results`).
 - Pasted `console.noibu.com` URL → load `references/console-urls.md`.
 
 **Within page-visits — pair metrics and visual when both help. Rows assume a URL is in scope:**
@@ -176,4 +180,5 @@ Load exactly one reference based on the topic of the user's question. Each file 
 | Rendering an ecommerce conversion funnel as a chart ("show the funnel", "checkout funnel chart") | `references/funnel-visualization.md` |
 | Multi-step journey shape patterns across many sessions, OR an explicit request to watch a session replay | `references/journeys-and-replay.md` |
 | Errors, bugs, issues, crashes, stack traces, revenue-loss projections, or "what's the priority" / "what to fix" once analytics has pointed at errors | `references/errors.md` |
+| AB tests / experiments (test roster and config, which variation is winning, verdicts, guardrail health checks, comparing arms) | `references/ab-tests.md` |
 | A pasted `console.noibu.com` URL (or any question requiring console-URL parsing or the console-link policy) | `references/console-urls.md` |
