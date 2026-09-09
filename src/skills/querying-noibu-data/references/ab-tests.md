@@ -6,7 +6,7 @@ Two tools split the work: `noibu_list_ab_tests` returns test **configs** — it 
 
 ## Terms
 
-- **Lifecycle vs verdict are different axes.** Lifecycle (`status`, stored on the test): `DRAFT` (not started — nothing to analyze), `RUNNING`, `STOPPED` (ended, with or without a decision). Verdict (computed live, never stored): `TOO_EARLY`, `TOO_CLOSE`, `CLEAR_LEADER`.
+- **Lifecycle vs verdict are different axes.** Lifecycle (`status`, stored on the test): `DRAFT` (not started — nothing to analyze), `RUNNING`, `STOPPED` (ended, with or without a decision). Verdict (computed live, never stored): `TOO_EARLY`, `TOO_CLOSE`, `BEAT_CONTROL`, `MULTIPLE_BEAT_CONTROL`, `CLEAR_WINNER`.
 - **Control** — the variation with `isControl: true`; the default experience the others are compared against.
 - **Success metric** — the single metric the verdict is judged on. **Secondary metrics** (up to 3) are measured alongside but never decide the outcome.
 - **`key` vs `id`** — `key` is the test's slug and feature-flag key (what sessions are tagged with); `id` is the numeric identity used in console URLs (`/…/ab-tests/<id>`). Both come from `noibu_list_ab_tests`.
@@ -18,11 +18,12 @@ The payload's `notes[]` carries computed caveats (running window, control not ob
 
 Reading the verdict (`results.primaryMetric.bayesianAnalysis`):
 
-- `status`: `TOO_EARLY` (not enough data for a call), `TOO_CLOSE` (enough data, no decisive separation), `CLEAR_LEADER` (a variation's `probabilityBest` cleared 95%).
-- `recommendedVariation` names the variation to ship. When it is the **control**, report "keep the current experience" — that is a decided test, not a failed one.
+- `status`: `TOO_EARLY` (nothing compared yet — a variation is short of 500 sessions, 25 conversions, or 7 days), `TOO_CLOSE` (compared, nothing separated — also the no-winner state on a control-less test), `BEAT_CONTROL` / `MULTIPLE_BEAT_CONTROL` (one / several variations beat the control, none won outright), `CLEAR_WINNER` (one variation beat every other).
+- **Two claims — never conflate them.** `perVariation[].isWinner` means the variation beat **every** other arm; at most one ever has it, and the control can win. `comparisonToControl.isBetterThanControl` is the weaker pairwise claim and several arms can hold it at once — `MULTIPLE_BEAT_CONTROL` is a real result, not "no result".
+- `recommendedVariation` names the variation to ship and is set on exactly the three decisive statuses — read it rather than matching on `status`. When it is the **control**, report "keep the current experience" — a decided test, not a failed one.
 - A test `STOPPED` while the verdict reads `TOO_EARLY` was **stopped early** — say so rather than "no results".
-- `chanceToWin`, uplift, and `credibleInterval95` are challenger-vs-control readings; they are null when no control was observable (the `notes[]` explain when that happens — variations are still ranked).
-- `TOO_EARLY` means the statistical gates aren't met: each variation needs a minimum sample (surfaced as `estimate.requiredSessionsPerVariation`) and minimum conversions. The bar is fixed traffic, not time — high-traffic sites clear it sooner — but advise letting a test span at least a full week so weekly seasonality doesn't skew the read.
+- vs-control numbers (`probabilityToBeat`, uplift, `credibleInterval95`) live per-arm under `comparisonToControl` — null on the control's own row, and on every row when no control was observable (the `notes[]` explain; arms are still ranked). `probabilityToBeBest` is a display ranking only — it gates nothing, and a winner's can sit below 95%.
+- On `TOO_EARLY` every figure is still reported — quote rates and probabilities if asked — but nothing is flagged and `recommendedVariation` is null. Report "not enough data to call it yet", never a tie and never a winner.
 
 Health checks (`results.guardrails`) — three checks: `sampleRatio` (traffic-split mismatch), `errorRate`, `lcpP95`, each `PASS` | `WARN` | `NOT_EVALUATED`. A `WARN` never invalidates the verdict but must be reported alongside it ("winner, with warnings"). `NOT_EVALUATED` early in a test is normal; `notEvaluatedReason` says why (e.g. `BELOW_SAMPLE_FLOOR`).
 
