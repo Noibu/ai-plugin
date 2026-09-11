@@ -13,21 +13,18 @@ Two tools split the work: `noibu_list_ab_tests` returns test **configs** — it 
 - **Lifecycle mechanics** — while `RUNNING`, only the hypothesis and secondary metrics are editable (server-enforced — variations, split, targeting, and the success metric lock so results stay valid). `STOPPED` is final: no restart, the flag turns off, everyone sees the control. Assignment is sticky per visitor, and visitors excluded by targeting see the control without entering the results.
 
 ## Interpreting results (`noibu_get_ab_test_results`)
-
-The payload's `notes[]` carries computed caveats (running window, control not observed, estimate unavailable) — relay them to the user.
-
 Reading the verdict (`results.primaryMetric.bayesianAnalysis`):
 
 - `status`: `TOO_EARLY` (nothing compared yet — a variation is short of 500 sessions, 25 conversions, or 7 days), `TOO_CLOSE` (compared, nothing separated — also the no-winner state on a control-less test), `BEAT_CONTROL` / `MULTIPLE_BEAT_CONTROL` (one / several variations beat the control, none won outright), `CLEAR_WINNER` (one variation beat every other).
 - **Two claims — never conflate them.** `perVariation[].isWinner` means the variation beat **every** other arm; at most one ever has it, and the control can win. `comparisonToControl.isBetterThanControl` is the weaker pairwise claim and several arms can hold it at once — `MULTIPLE_BEAT_CONTROL` is a real result, not "no result".
 - `recommendedVariation` names the variation to ship and is set on exactly the three decisive statuses — read it rather than matching on `status`. When it is the **control**, report "keep the current experience" — a decided test, not a failed one.
 - A test `STOPPED` while the verdict reads `TOO_EARLY` was **stopped early** — say so rather than "no results".
-- vs-control numbers (`probabilityToBeat`, uplift, `credibleInterval95`) live per-arm under `comparisonToControl` — null on the control's own row, and on every row when no control was observable (the `notes[]` explain; arms are still ranked). `probabilityToBeBest` is a display ranking only — it gates nothing, and a winner's can sit below 95%.
+- vs-control numbers (`probabilityToBeat`, uplift, `credibleInterval95`) live per-arm under `comparisonToControl` — null on the control's own row, and on every row when the test named no control (arms are still ranked). `probabilityToBeBest` is a display ranking only — it gates nothing, and a winner's can sit below 95%.
 - On `TOO_EARLY` every figure is still reported — quote rates and probabilities if asked — but nothing is flagged and `recommendedVariation` is null. Report "not enough data to call it yet", never a tie and never a winner.
 
-Health checks (`results.guardrails`) — three checks: `sampleRatio` (traffic-split mismatch), `errorRate`, `lcpP95`, each `PASS` | `WARN` | `NOT_EVALUATED`. A `WARN` never invalidates the verdict but must be reported alongside it ("winner, with warnings"). `NOT_EVALUATED` early in a test is normal; `notEvaluatedReason` says why (e.g. `BELOW_SAMPLE_FLOOR`).
+Health checks (`results.guardrails`) — three checks: `sampleRatio` (traffic-split mismatch), `errorRate`, `lcpP95`, each `PASS` | `WARN` | `NOT_EVALUATED`. A `WARN` never invalidates the verdict but must be reported alongside it ("winner, with warnings"). `NOT_EVALUATED` early in a test is normal; `notEvaluatedReason` says why. `BELOW_SAMPLE_FLOOR` is the guardrail's own floor, unrelated to the gates `TOO_EARLY` reports against — and lcpP95's floor only bars an arm from being the baseline; a below-floor arm is still compared and can still be flagged.
 
-Estimated time to a decision (`estimate`) — present for draft and running tests: `estimatedDays` until the smallest variation reaches the required sample. `status: INSUFFICIENT_TRAFFIC` means too few recent targeted sessions to estimate.
+Estimated time to a decision (`estimate`) — present for draft and running tests. The estimate and the verdict share one bar: `requiredSessionsPerVariation`, `requiredConversionsPerVariation`, and `minimumRuntimeDays` are the same three gates `TOO_EARLY` reports against — never present them as two opinions, and on `TOO_EARLY` name the gate still open rather than only the day count. `estimatedDays` is never below `minimumRuntimeDays`; for a `PAGE_VIEW_TO_URL_RATE` success metric the conversion gate is not projected, so hedge the day count. `isCapped` at 365 days can mean a gate that never opens — say the test cannot reach a verdict as configured. `status: INSUFFICIENT_TRAFFIC` means too few recent targeted sessions to estimate.
 
 ## Result validity caveats
 
