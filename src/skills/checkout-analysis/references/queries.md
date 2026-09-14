@@ -20,7 +20,7 @@ The **prior comparable window** is the equal-length window immediately before th
 ## Step 1 — Broad overview (current + prior windows)
 
 - First tell the user what you're doing, e.g. "Starting with a broad look across your checkout, comparing the last 30 days to the prior 30."
-- Fire the **current-window** battery (Q1–Q7) and, in parallel, the **prior-window** counterparts for the change-detection metrics (Q1, Q2, Q6, Q7). Q3/Q4 (payment/delivery, descriptive) and Q5 (errors, recency-based) need no prior copy.
+- Fire the **current-window** battery (Q1–Q7, plus Q1b when its fields are available) and, in parallel, the **prior-window** counterparts for the change-detection metrics (Q1, Q1b, Q2, Q6, Q7). Q3/Q4 (payment/delivery, descriptive) and Q5 (errors, recency-based) need no prior copy.
 - **No minimum session thresholds at this stage.** Principle 1: skip any empty/null slice silently.
 
 **Q1 — Full funnel by depth** (current + prior). Session tool, group by funnel depth, measure session count, order by sessions desc.
@@ -29,6 +29,22 @@ The **prior comparable window** is the equal-length window immediately before th
 - If depth group-by is unavailable: one all-sessions query measuring total sessions, per-stage event counts, and the predefined conversion rate — those intermediate counts are event proxies, so lean on total → completed.
 - If intermediate buckets are near-zero while completions are healthy → Principle 2.
 - **Express checkout inflates depth-4 vs depth-3.** Apple Pay, Shop Pay, etc. bypass the payment-info page, so depth-4 > depth-3 is normal — explain it, don't treat it as an error.
+
+**Q1b — Checkout sub-step abandonment** (current + prior). Run this unconditionally, same as Q1 — the fields below (contact / address / shipping / payment submission counts, cart value, visual-error flag, exit URL) are standard session-table fields on every account, not an account-specific extension, so don't gate this query on confirming they "exist" first. What varies by platform/integration is whether they're *populated* — apply Principle 1 to the **results**, not to whether to run the query.
+
+Session tool, filter to funnel depth ≥ 2 (checkout-entered sessions only — cart-only sessions are out of scope here), row-level (one row per session, not grouped), selecting: the checkout sub-step submission-count fields (contact / address / shipping / payment), `MAX_CART_VALUE` (alias `cart_value`), the visual-error flag, and the exit-URL field.
+
+- Exclude completed sessions — this query only classifies *abandoned* checkout sessions.
+- Classify each remaining session into exactly one bucket by the furthest step reached, first match wins:
+  1. **Attempted payment, didn't complete** — payment submitted ≥ 1 but not completed.
+  2. **Experienced technical issues** — the session's visual-error flag is set.
+  3. **Dropped at payment step** — reached shipping/address (≥ 1) but zero payment submissions.
+  4. **Dropped after adding contact info** — contact submitted ≥ 1, nothing further.
+  5. **Left checkout without any action** — checkout started, zero sub-steps submitted.
+  6. **Left checkout to keep browsing** — zero progress, and the exit page is a product/collection page rather than checkout.
+- Per bucket, sum session count and `cart_value` (sum of `MAX_CART_VALUE`).
+- **After running the query**, apply Principle 1 to what came back: if every bucket is zero/null, this data genuinely isn't populated for this account — omit the table entirely, no placeholder. If only some buckets have real counts (e.g. sub-step counts are populated but the visual-error flag never fires), show the populated buckets and drop the zero ones — don't require every bucket before showing any.
+- Feeds the Overview's "Top source of abandonment" table (buckets ranked by session count, capped at 5) and, per bucket, the regression check in Step 3.
 
 **Q2 — Cart & order value baseline** (current + prior). Session tool, filter to funnel depth ≥ 2, group by discount-applied, measure session count + median completed order value + median product quantity, order by sessions desc.
 
@@ -80,8 +96,10 @@ From the Step 2 deltas, pick the top 3 **regressions** by sessions affected (few
 | A device's conversion fell vs its own prior | That device's funnel — isolate the step that moved |
 | A market's conversion fell vs its own prior | Country cross-tab — shipping/payment/localization change |
 | Discount rate or discounted conversion moved materially | Promo mix — did a campaign change the picture |
+| A checkout sub-step abandonment bucket (Q1b) grew, proportionally, vs its own prior share | That bucket's example sessions — Investigate goes one level deeper the same way it does for any other card |
 
 - **Markets are relative.** Flag a country only when its conversion *regressed* vs its prior. A chronically-low or chronically-0% market that didn't change is **not** a signal (it's likely a market they don't serve). A market with no prior baseline can't be assessed — don't flag it.
+- **Sub-step buckets are relative too, same as markets.** Flag a Q1b bucket only when its share of abandoned sessions regressed vs its own prior window — a chronically large "dropped at payment step" bucket that hasn't changed is not a signal.
 - **Discount-value gap is benign.** "Discounted orders complete at a lower value" is normal coupon behaviour — never a standalone card. Only surface discounts if the rate or discounted conversion regressed.
 - **The only non-regression card is a qualified active error** (Q5).
 

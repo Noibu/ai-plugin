@@ -30,6 +30,7 @@ One card with the same chrome as the Priority cards: a header strip with the lab
   - **Principle 2:** if intermediate steps are uninstrumented (near-zero while completions are healthy), show only the instrumented steps (e.g. Added to cart → Completed) rather than rendering misleading drops.
 - **Stat line 1 — funnel health:** Checkout completion `54%` (depth-4 ÷ depth-2+; if intermediate steps are uninstrumented, use cart → order, depth-4 ÷ depth-1+, and relabel) · Mobile / Desktop conversion · Checkout errors `N`.
 - **Stat line 2 — order profile:** Median order `$X` · Discounted `N%` · Items / order `N`. Principle 1: include only the populated metrics; drop the whole line if none are.
+- **Top source of abandonment table** — a compact, header-less table under the two stat lines, above Payment & delivery: columns "Top source of abandonment" · "Abandoned sessions" · "Cart value", up to 5 rows ordered by session count descending, no overflow line. Built from Q1b, which runs unconditionally (its fields are standard, not account-specific). Renders only when Q1b's *results* are actually populated for this domain (Principle 1 applied to the data, not a pre-check of field availability) — omit the whole table only if every bucket comes back zero/null, and show just the populated buckets if some but not all are (e.g. no visual-error sessions → skip "Experienced technical issues" but still show the rest).
 - **Payment & delivery** — a two-column row of small horizontal bar charts (method name · bar by share · order count), completed-orders only, built from the Q3/Q4 results. **If Q3 or Q4 returned any rows, you must render that chart** — reuse the Step 1 results; don't drop it for length or re-decide whether it's "worth showing." Only omit a chart whose query came back genuinely empty, and omit the whole row only if *both* are empty. Caption: "Payment & delivery: completed orders only · shown when populated".
 
 **Overview card template** (fill the bar heights, connector clip-paths, tooltips, and stat values from the data):
@@ -53,14 +54,18 @@ One card with the same chrome as the Priority cards: a header strip with the lab
     <p style="font-size:12px;color:var(--color-text-secondary);margin:0 0 16px;">[total sessions] · [ATC%] added to cart</p>
 
     <div style="display:flex;">
-      [Repeat per funnel step. cf-div on every column except the last. First column header pad 0 16px 0 0, middle columns 0 16px, last column 0 0 0 16px. Step 1 headline = count; steps 2+ = "% of cart". Put the danger pill on the biggest-drop step only. Bar height = sqrt(step÷step1)×150 px; connector clip-path per the scaling note; the last column has no connector.]
+      [Repeat per funnel step. cf-div on every column except the last. First column header pad 0 16px 0 0, middle columns 0 16px, last column 0 0 0 16px. Step 1 headline = count; steps 2+ = "% of cart". Put the danger pill on the biggest-drop step only. Bar height = sqrt(step÷step1)×150 px; connector clip-path per the scaling note; the last column has no connector. **Tooltip alignment: the last one or two columns (whichever are close enough to the card's right edge to overflow) use `cf-tip-r` instead of `cf-tip` alone, so the tooltip anchors right and extends leftward instead of running off the card — never let a tooltip's horizontal extent depend only on `left:0` near the right edge.**
       <div class="cf-col"><div class="cf-div"></div>
         <div style="padding:0 16px 0 0;">
-          <div style="font-size:11px;font-weight:500;letter-spacing:0.4px;color:var(--color-text-secondary);text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">[Stage]</div>
+          <div style="display:flex;align-items:center;gap:6px;min-width:0;">
+            <div style="flex:1;min-width:0;font-size:11px;font-weight:500;letter-spacing:0.4px;color:var(--color-text-secondary);text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">[Stage]</div>
+            [Danger pill — only on the biggest-drop step, omitted on every other column. It sits beside the label, never inside the same nowrap/ellipsis element, and never shrinks:]
+            <span style="flex-shrink:0;font-size:10px;font-weight:600;color:var(--color-text-danger);background:var(--color-background-tertiary);padding:2px 6px;border-radius:4px;white-space:nowrap;">↓[N]%</span>
+          </div>
           <div style="font-size:16px;font-weight:500;color:var(--color-text-primary);margin-top:2px;">[value]</div>
         </div>
         <div class="cf-body">
-          <div class="cf-tip">[tooltip]</div>
+          <div class="cf-tip[ add ' cf-tip-r' on the last one or two columns per the alignment note above ]">[tooltip]</div>
           <div style="position:absolute;left:0;width:50%;bottom:0;height:150px;background:var(--color-background-tertiary);border-radius:4px 4px 0 0;"></div>
           <div style="position:absolute;left:0;width:50%;bottom:0;height:[barPx]px;background:var(--color-text-primary);border-radius:4px 4px 0 0;"></div>
           <div style="position:absolute;right:0;width:50%;bottom:0;height:150px;background:var(--color-background-tertiary);clip-path:polygon(0% [thisTop]%,100% [nextTop]%,100% 100%,0% 100%);"></div>
@@ -77,6 +82,28 @@ One card with the same chrome as the Priority cards: a header strip with the lab
       <span>Median order <span style="color:var(--color-text-primary);font-weight:500;">[$X]</span></span>
       <span>Discounted <span style="color:var(--color-text-primary);font-weight:500;">[N%]</span></span>
       <span>Items / order <span style="color:var(--color-text-primary);font-weight:500;">[N]</span></span>
+    </div>
+
+    [Top source of abandonment table — Q1b runs unconditionally; render this only if at least one bucket came back with a non-zero count, omit entirely otherwise. No section title above it. Rows ordered by session count desc, capped at 5, no "N more" line. **Put the divider spacing (margin-top/padding-top/border-top) on this wrapping div, never directly on the `<table>` element — with `border-collapse:collapse`, a `<table>`'s own padding is unreliable and the divider ends up flush against the header row.**]
+    <div style="margin-top:18px;padding-top:16px;border-top:0.5px solid var(--color-border-tertiary);">
+    <table style="width:100%;border-collapse:collapse;">
+      <thead>
+        <tr>
+          <th style="text-align:left;font-size:10.5px;font-weight:600;color:var(--color-text-tertiary);text-transform:uppercase;letter-spacing:0.06em;padding:0 0 9px;border-bottom:0.5px solid var(--color-border-tertiary);">Top source of abandonment</th>
+          <th style="text-align:right;font-size:10.5px;font-weight:600;color:var(--color-text-tertiary);text-transform:uppercase;letter-spacing:0.06em;padding:0 0 9px;border-bottom:0.5px solid var(--color-border-tertiary);">Abandoned sessions</th>
+          <th style="text-align:right;font-size:10.5px;font-weight:600;color:var(--color-text-tertiary);text-transform:uppercase;letter-spacing:0.06em;padding:0 0 9px;border-bottom:0.5px solid var(--color-border-tertiary);">Cart value</th>
+        </tr>
+      </thead>
+      <tbody>
+        [Repeat per bucket, ranked by session count desc, cap 5:]
+        <tr>
+          <td style="padding:10px 0;border-bottom:0.5px solid var(--color-border-tertiary);font-size:13px;color:var(--color-text-primary);font-weight:500;">[Bucket name — one of: Dropped at payment step / Left checkout without any action / Dropped after adding contact info / Attempted payment, didn't complete / Experienced technical issues / Left checkout to keep browsing]</td>
+          <td style="padding:10px 0;border-bottom:0.5px solid var(--color-border-tertiary);text-align:right;font-size:13px;color:var(--color-text-secondary);">[N]</td>
+          <td style="padding:10px 0;border-bottom:0.5px solid var(--color-border-tertiary);text-align:right;font-size:13px;color:var(--color-text-primary);font-weight:500;">[$X]</td>
+        </tr>
+        [Last row in the table has no border-bottom.]
+      </tbody>
+    </table>
     </div>
 
     [Payment & delivery row — render whenever Q3/Q4 returned rows (reuse Step 1 results); omit a side only if its query was empty, and the whole row only if both were:]
@@ -153,6 +180,7 @@ When the Investigate button is clicked, it sends a new prompt — see the **Inve
 | Market regression | (prior market CVR − current) × that market's sessions |
 | Payment-method regression | (prior method completion − current) × that method's submitted sessions |
 | Cart-exit regression | extra ATC sessions not reaching checkout vs prior |
+| Sub-step abandonment bucket regression (Q1b) | (prior bucket share − current) × current depth-2+ sessions |
 | Qualified active error | session impact count from the errors tool |
 
 Rules:
