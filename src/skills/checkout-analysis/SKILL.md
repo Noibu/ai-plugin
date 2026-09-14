@@ -15,11 +15,11 @@ Run Setup, then pick one of two behaviors from the user's prompt:
 - **Quick answer** (one focused question) → run 1–2 queries, answer directly, offer to go deeper.
 - **Full analysis** (broad request, bare invocation, or "yes" to the offer) → the four-step workflow below.
 
-Full analysis flow: **(1)** broad overview (Q1–Q7, current + prior window) → **(2)** cross-reference + period-over-period → **(3)** pick the top 3 regressions → **(4)** run targeted follow-ups → render the board (one widget). Signals are flagged on **change vs the prior window**, not absolute level — see `references/queries.md` "Signal model".
+Full analysis flow: **(1)** broad overview (Q1–Q7, plus Q1b when available, current + prior window) → **(2)** cross-reference + period-over-period → **(3)** pick the top 3 regressions → **(4)** run targeted follow-ups → render the board (one widget). Signals are flagged on **change vs the prior window**, not absolute level — see `references/queries.md` "Signal model".
 
 ## Setup — before any query
 
-**Work quietly.** Don't narrate plumbing — resolving the domain, loading reference files, and reading the board format all happen silently, with no "let me…" commentary. The first thing the user sees is the Step 1 overview line ("Starting with a broad look…"); after that, narrate only real analytical progress (what the data shows), never file reads or tool setup.
+**Work quietly.** Don't narrate plumbing — resolving the domain, loading reference files, reading the board format, and deciding which tools, queries, or fields to use all happen silently, with no "let me…" commentary or explanation of *how* the analysis will be assembled. The first thing the user sees is the Step 1 overview line ("Starting with a broad look…"); after that, narrate only real analytical progress (what the data shows), never file reads, tool setup, field-name lookups, or other implementation/processing detail about how the answer was produced.
 
 - **Resolve the domain first; keep the company id it returns.** If the user gave a domain (name or UUID), use it. If not, ask which one via `AskUserQuestion` populated from the user's domains — don't interrogate for anything else; take the default window and proceed. If the account has exactly one domain, skip the question and use it. Domain resolution returns a company id alongside the domain UUID; some tools (priority errors, data-connection checks) need that company id too — carry both.
 - **Load the Noibu context reference** (the `querying-noibu-data` skill/reference). It maps the role-based names used here ("session query tool", "funnel depth field", etc.) to the real Noibu tools/columns and documents query constraints. If it isn't available, discover tools and field names from the live Noibu API / tool schema instead — don't stop or guess.
@@ -33,6 +33,7 @@ Full analysis flow: **(1)** broad overview (Q1–Q7, current + prior window) →
 - **Filter on:** device, country, bounced, checkout-completed, landing URL, UTM source.
 - **Funnel depth — confirm the exact field name; the prefix matters.** It *is* groupable (working name ~`CONVERSION_FUNNEL_DEPTH`), but near-variants are rejected. If a group-by is rejected, look up the exact name and retry; only fall back to per-stage count measures if it truly isn't available.
 - **Payment and delivery method are NOT groupable.** Attempt those slices only if the reference/schema exposes such a field; if not, skip them (see Principle 1).
+- **Checkout sub-step submission counts (contact / address / shipping / payment) and cart value are per-session fields, not group-by dimensions.** They feed Q1b's abandonment-reason classification (row-level, one row per session), not the grouped session queries above. These are standard fields on every account — run Q1b unconditionally; only skip its output (whole table, or individual buckets) if the results actually come back empty (Principle 1 applied to the data, not to whether the fields are named in a reference doc).
 
 ## Two principles that govern everything
 
@@ -52,7 +53,7 @@ Full analysis flow: **(1)** broad overview (Q1–Q7, current + prior window) →
 
 A specific, focused question ("where do people drop off?", "what payment methods are used?", "errors on my checkout pages?"):
 
-1. Load `references/queries.md` and run only the 1–2 query specs needed (e.g. funnel → Q1, payment methods → Q3, errors → Q5).
+1. Load `references/queries.md` and run only the 1–2 query specs needed (e.g. funnel → Q1, why people abandon → Q1b, payment methods → Q3, errors → Q5).
 2. Answer in a few sentences + a small table if useful.
 3. Offer a deeper analysis; if yes, run Full analysis.
 
@@ -71,13 +72,14 @@ A triage-board **Investigate** button arrives as a new chat prompt ("Investigate
     - Vendor/third-party error → `/tech-diagnosis share with vendor #[humanId] on [domain]`
     - Performance → `/tech-diagnosis fix [LCP|INP|CLS] on [page-url] for [domain]`
     - **If tech-diagnosis is NOT available, don't emit a dead `/tech-diagnosis …` command.** Handle the cause inline: name the issue (`humanId` / page), give a one-line likely root cause and a concrete next step. Don't mention or recommend installing another skill.
-- **Answer in chat with:** the *why* (the breakdown already gathered, ≤8 rows, plus any deeper root-cause finding) and, per cause, either the inline what-next or the tech-diagnosis handoff. Keep it tight; don't re-render the board.
+- **Offer to run the next step yourself when it's Noibu-answerable — this applies across every cause type above, not just performance ones.** Before handing a what-next off entirely to a human team, check whether it's something the Noibu MCP tools can actually answer right now: page-visit Core Web Vitals (LCP/INP/CLS) for the affected URL, session replay or session detail for the sessions in this bucket, a heatmap/click-map for the page, or a deeper breakdown of this same segment. When it is, end the answer with a one-line offer naming the specific action (e.g. "Want me to pull LCP/INP for the checkout page on mobile?" or "Want me to show you a few session replays from this bucket?") instead of only describing it as a task for someone else's team to go check manually. Don't offer this for what-nexts that are genuinely external (e.g. "have the payment processor check gateway logs," "ask the theme team to review the code") — only for what the Noibu toolset itself can pull. This offer is separate from (and can sit alongside) a tech-diagnosis handoff — it's for the cases where Claude can just go get the answer directly.
+- **Answer in chat with:** the *why* (the breakdown already gathered, ≤8 rows, plus any deeper root-cause finding), per cause either the inline what-next or the tech-diagnosis handoff, and — where it applies — the one-line offer to pull further Noibu data directly. Keep it tight; don't re-render the board.
 
 ## Full analysis
 
 A broad request, a bare invocation, or "yes" to the quick-answer offer. Run the whole workflow, then render the board in **one `show_widget`**:
 
-1. **Broad overview** — fire Q1–Q7 for the current window plus the prior-window counterparts for the change-detection metrics (`queries.md`, Step 1).
+1. **Broad overview** — fire Q1–Q7, plus Q1b when its fields are available, for the current window plus the prior-window counterparts for the change-detection metrics (`queries.md`, Step 1).
 2. **Cross-reference + period-over-period** — compute current rates and their delta vs the prior window (Step 2).
 3. **Pick the top 3 regressions** to dig into, using the routing table (Step 3). The only non-regression card is a qualified active error (Q5).
 4. **Follow-up queries** — run only the follow-ups those signals call for (Step 4).
