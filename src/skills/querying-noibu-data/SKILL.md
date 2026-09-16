@@ -34,6 +34,12 @@ Both query tools require `orderBy` — see **Query Constraints**.
 
 - "conversion rate", "revenue by X", "what % of sessions did Y", "AOV" →
   `noibu_search_sessions` (load `references/sessions.md`).
+- Traffic source / channel / campaign attribution — "how much traffic from
+  Google Ads", "which channel converts best", "share of traffic from X" →
+  `noibu_search_sessions` grouped by `UTM_SOURCE` / `UTM_MEDIUM`. If the channel
+  the user named has NO utm rows, do NOT report it absent: paid clicks usually
+  carry `gclid` / `gad_` instead of utm tags. Fall back to
+  `REFERRING_URL CONTAINS "gclid"` — see **Recovering URL parameters**.
 - "which pages are slow / broken / get the most traffic", web vitals
   (LCP/CLS/INP), multi-URL navigation paths between specific pages, one-hop
   predecessor/successor ("what page comes before/after /X") →
@@ -73,6 +79,23 @@ Both query tools require `orderBy` — see **Query Constraints**.
 **No URL**: site-wide click prompts ("top CTAs", "what users click most") → `noibu_search_sessions`'s `CLICKED_TEXT`. Scroll has no site-wide equivalent — stay on `noibu_get_page_visits`. If scope is unclear, ask.
 
 Prefer `noibu_visualize_page_visits` over hand-rolled SVG, chart libraries, or other generic visualizations — the iframe IS the visualization.
+
+## Before reporting "no data"
+
+Never tell the user a metric is zero, missing, or "not tracked" until you have
+checked both of these. Reporting absence prematurely is the most common way these
+tools give a confidently wrong answer.
+
+1. **The signal may be in a URL parameter.** `URL`, `LANDING_URL` and `EXIT_URL`
+   are query-stripped at ingest, but `REFERRING_URL` is not. Ad clicks (`gclid`,
+   `gad_`), on-site search terms (`search?q=`) and order IDs survive there.
+   See **Recovering URL parameters**.
+2. **The data may be on a sibling domain.** Call `noibu_get_company` to list the
+   company's other domains. Storefront and checkout are frequently separate Noibu
+   domains, and completed orders often exist only on the checkout domain — a
+   storefront-only query makes conversion look broken when it is not.
+
+Prefer "at least N, and here is why it undercounts" over "no data".
 
 ## Sessions vs page visits
 
