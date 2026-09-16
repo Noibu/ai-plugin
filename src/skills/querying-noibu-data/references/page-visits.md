@@ -19,6 +19,8 @@ Page-level analytics. One row per page visit. `orderBy` is REQUIRED (inside `que
   `VIEWPORT_WIDTH`
 - Navigation role: `IS_LANDING_PAGE`, `IS_EXIT_PAGE` (booleans per page visit)
 - Page context: `PAGE_TITLE`, `LANGUAGE`, `REFERRING_URL`, `PREV_URL`, `PREV_PAGE_GROUPS` collection
+  (`REFERRING_URL` keeps its query string — it is the only field that retains URL parameters;
+  see "Recovering URL parameters" in SKILL.md)
 - Page-level conversion: `CHECKOUT_COMPLETED` per-page, which specific pages are visited
   by converting sessions
 - Cohort analysis (every page-visit row carries denormalized session context — no JOIN

@@ -133,6 +133,13 @@ want to explore the data or investigate specific errors.
 
 **noibu_list_domains** — List domains the user has access to. Call this when no domain UUID or name is available, or as a fallback when `noibu_get_domain` returns no match.
 
+**Check sibling domains before reporting missing data.** A company often runs its
+storefront and checkout as separate Noibu domains (e.g. `www.example.com` and
+`checkout.example.com`), and the orders may exist only on the sibling. Before telling
+the user a metric is zero or "not tracked", call `noibu_get_company` to enumerate the
+company's domains and check the relevant one. Sessions do not stitch across domains,
+so acquisition source and completed orders can sit in two disconnected datasets.
+
 ## The `rationale` argument
 
 Every `noibu_*` tool accepts a `rationale` argument. **Always populate it.** It
@@ -156,6 +163,26 @@ every call.
 - Each measure must be unique by (fieldName, measureFunc).
 - For time series: resolution options are MINUTE, HOUR, DAY, WEEK. Pick based on range: last 24h → HOUR, last 7d → DAY, last 90d → WEEK.
 - `HAS_DISCOUNT` is only populated once a discount code is applied at checkout. Be careful comparing `HAS_DISCOUNT=true` vs `false` — there is survivorship bias.
+
+## Recovering URL parameters
+
+`URL`, `LANDING_URL` and `EXIT_URL` have their query string and fragment stripped at
+ingest. `REFERRING_URL` does **not** — it is stored absolute and verbatim, so it is the
+only field that still carries URL parameters.
+
+To recover a parameter, filter page visits on `REFERRING_URL CONTAINS "<param>"`:
+
+- **Paid-ad traffic** — `gclid` or `gad_`. Google Ads auto-tagging adds these even when
+  UTM tags are absent, so a domain with no `utm_source=google` can still be measured.
+- **On-site search terms** — the site's search path, e.g. `search?q=` or `search?term=`.
+  Discover the pattern first by grouping referrers that contain `?`.
+- **Order IDs** and similar identifiers rendered into a confirmation URL.
+
+Caveat: `REFERRING_URL` is only set on a page visit that follows another page visit, so
+single-page (bounced) sessions are invisible here. Treat any count derived from it as a
+floor and say so. Some values are masked (e.g. `email=******`). Grouping by
+`REFERRING_URL` returns raw URLs, so normalise case, `&page=N` and percent-encoding
+before ranking.
 
 ## Reporting blockers
 
