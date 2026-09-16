@@ -38,8 +38,9 @@ Both query tools require `orderBy` — see **Query Constraints**.
   Google Ads", "which channel converts best", "share of traffic from X" →
   `noibu_search_sessions` grouped by `UTM_SOURCE` / `UTM_MEDIUM`. If the channel
   the user named has NO utm rows, do NOT report it absent: paid clicks usually
-  carry `gclid` / `gad_` instead of utm tags. Fall back to
-  `REFERRING_URL CONTAINS "gclid"` — see **Recovering URL parameters**.
+  carry `gclid` / `gad_` instead of utm tags. Switch to
+  **`noibu_get_page_visits`** and filter `REFERRING_URL CONTAINS "gclid"`,
+  counting `UNIQ(SESSION_ID)` — see **Recovering URL parameters**.
 - "which pages are slow / broken / get the most traffic", web vitals
   (LCP/CLS/INP), multi-URL navigation paths between specific pages, one-hop
   predecessor/successor ("what page comes before/after /X") →
@@ -194,6 +195,13 @@ ingest. `REFERRING_URL` does **not** — it is stored absolute and verbatim, so 
 only field that still carries URL parameters.
 
 To recover a parameter, filter page visits on `REFERRING_URL CONTAINS "<param>"`:
+
+**Always run this on `noibu_get_page_visits`, never `noibu_search_sessions`.** A
+session's `REFERRING_URL` is only its landing referrer, which browsers strip of query
+params cross-origin. The parameters survive on *internal* referrers — the ad landing
+page pointing at the next page — which exist only per page visit. Routing this to the
+sessions tool undercounts by roughly 20x (779 vs 15,642 sessions on one real domain).
+
 
 - **Paid-ad traffic** — `gclid` or `gad_`. Google Ads auto-tagging adds these even when
   UTM tags are absent, so a domain with no `utm_source=google` can still be measured.
