@@ -209,9 +209,11 @@ sessions tool undercounts by roughly 20x (779 vs 15,642 sessions on one real dom
   Discover the pattern first by grouping referrers that contain `?`.
 - **Order IDs** and similar identifiers rendered into a confirmation URL.
 
-Caveat: `REFERRING_URL` is only set on a page visit that follows another page visit, so
-single-page (bounced) sessions are invisible here. Treat any count derived from it as a
-floor and say so. Some values are masked (e.g. `email=******`). Grouping by
+Caveat: `REFERRING_URL` is populated on landing visits too, but browsers strip the query
+string on cross-origin navigation, so parameters in practice only survive on same-origin
+(internal) referrers — a visit that follows an earlier visit on the site. A bounced
+single-page session has a referrer but no recoverable parameters. Treat any count derived
+from this as a floor and say so. Some values are masked (e.g. `email=******`). Grouping by
 `REFERRING_URL` returns raw URLs, so normalise case, `&page=N` and percent-encoding
 before ranking.
 
