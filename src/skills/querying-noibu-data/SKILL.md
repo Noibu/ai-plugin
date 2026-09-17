@@ -34,6 +34,13 @@ Both query tools require `orderBy` — see **Query Constraints**.
 
 - "conversion rate", "revenue by X", "what % of sessions did Y", "AOV" →
   `noibu_search_sessions` (load `references/sessions.md`).
+- Traffic source / channel / campaign attribution — "how much traffic from
+  Google Ads", "which channel converts best", "share of traffic from X" →
+  `noibu_search_sessions` grouped by `UTM_SOURCE` / `UTM_MEDIUM`. If the channel
+  the user named has NO utm rows, do NOT report it absent: paid clicks usually
+  carry `gclid` / `gad_` instead of utm tags. Switch to
+  **`noibu_get_page_visits`** and filter `REFERRING_URL CONTAINS "gclid"`,
+  counting `UNIQ(SESSION_ID)` — see **Recovering URL parameters**.
 - "which pages are slow / broken / get the most traffic", web vitals
   (LCP/CLS/INP), multi-URL navigation paths between specific pages, one-hop
   predecessor/successor ("what page comes before/after /X") →
@@ -73,6 +80,23 @@ Both query tools require `orderBy` — see **Query Constraints**.
 **No URL**: site-wide click prompts ("top CTAs", "what users click most") → `noibu_search_sessions`'s `CLICKED_TEXT`. Scroll has no site-wide equivalent — stay on `noibu_get_page_visits`. If scope is unclear, ask.
 
 Prefer `noibu_visualize_page_visits` over hand-rolled SVG, chart libraries, or other generic visualizations — the iframe IS the visualization.
+
+## Before reporting "no data"
+
+Never tell the user a metric is zero, missing, or "not tracked" until you have
+checked both of these. Reporting absence prematurely is the most common way these
+tools give a confidently wrong answer.
+
+1. **The signal may be in a URL parameter.** `URL`, `LANDING_URL` and `EXIT_URL`
+   are query-stripped at ingest, but `REFERRING_URL` is not. Ad clicks (`gclid`,
+   `gad_`), on-site search terms (`search?q=`) and order IDs survive there.
+   See **Recovering URL parameters**.
+2. **The data may be on a sibling domain.** Call `noibu_get_company` to list the
+   company's other domains. Storefront and checkout are frequently separate Noibu
+   domains, and completed orders often exist only on the checkout domain — a
+   storefront-only query makes conversion look broken when it is not.
+
+Prefer "at least N, and here is why it undercounts" over "no data".
 
 ## Sessions vs page visits
 
@@ -133,6 +157,13 @@ want to explore the data or investigate specific errors.
 
 **noibu_list_domains** — List domains the user has access to. Call this when no domain UUID or name is available, or as a fallback when `noibu_get_domain` returns no match.
 
+**Check sibling domains before reporting missing data.** A company often runs its
+storefront and checkout as separate Noibu domains (e.g. `www.example.com` and
+`checkout.example.com`), and the orders may exist only on the sibling. Before telling
+the user a metric is zero or "not tracked", call `noibu_get_company` to enumerate the
+company's domains and check the relevant one. Sessions do not stitch across domains,
+so acquisition source and completed orders can sit in two disconnected datasets.
+
 ## The `rationale` argument
 
 Every `noibu_*` tool accepts a `rationale` argument. **Always populate it.** It
@@ -156,6 +187,35 @@ every call.
 - Each measure must be unique by (fieldName, measureFunc).
 - For time series: resolution options are MINUTE, HOUR, DAY, WEEK. Pick based on range: last 24h → HOUR, last 7d → DAY, last 90d → WEEK.
 - `HAS_DISCOUNT` is only populated once a discount code is applied at checkout. Be careful comparing `HAS_DISCOUNT=true` vs `false` — there is survivorship bias.
+
+## Recovering URL parameters
+
+`URL`, `LANDING_URL` and `EXIT_URL` have their query string and fragment stripped at
+ingest. `REFERRING_URL` does **not** — it is stored absolute and verbatim, so it is the
+only field that still carries URL parameters.
+
+To recover a parameter, filter page visits on `REFERRING_URL CONTAINS "<param>"`:
+
+**Always run this on `noibu_get_page_visits`, never `noibu_search_sessions`.** A
+session's `REFERRING_URL` is only its landing referrer, which browsers strip of query
+params cross-origin. The parameters survive on *internal* referrers — the ad landing
+page pointing at the next page — which exist only per page visit. Routing this to the
+sessions tool undercounts by roughly 20x (779 vs 15,642 sessions on one real domain).
+
+
+- **Paid-ad traffic** — `gclid` or `gad_`. Google Ads auto-tagging adds these even when
+  UTM tags are absent, so a domain with no `utm_source=google` can still be measured.
+- **On-site search terms** — the site's search path, e.g. `search?q=` or `search?term=`.
+  Discover the pattern first by grouping referrers that contain `?`.
+- **Order IDs** and similar identifiers rendered into a confirmation URL.
+
+Caveat: `REFERRING_URL` is populated on landing visits too, but browsers strip the query
+string on cross-origin navigation, so parameters in practice only survive on same-origin
+(internal) referrers — a visit that follows an earlier visit on the site. A bounced
+single-page session has a referrer but no recoverable parameters. Treat any count derived
+from this as a floor and say so. Some values are masked (e.g. `email=******`). Grouping by
+`REFERRING_URL` returns raw URLs, so normalise case, `&page=N` and percent-encoding
+before ranking.
 
 ## Reporting blockers
 
