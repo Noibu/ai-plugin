@@ -1,6 +1,6 @@
 ---
 name: ab-test-opportunity-finder
-description: "Find evidence-validated A/B testing opportunities for any Noibu-monitored ecommerce domain, aligned to the goal the user picks (add to cart rate, checkout starts, checkout completes, product or collection page views, a specific page, or all goals). Checks the domain has traffic and the instrumentation the goal needs, combines 30 days of Noibu analytics with a goal-scoped read of the live site and its policy pages, then publishes one hosted page where each ranked test has a plain description, the data behind it, the weekly traffic its success metric sees, a before/after preview, the setup as Noibu will receive it, dev notes, and a Create A/B test in Noibu button, plus a candidates.json handoff for the skill that builds the test. It does not write variation code. Use for A/B test ideas, CRO or experiment ideas, \"what should we test\", \"where are we losing conversions\", more add to carts or checkouts, or previewing a test variation on a Noibu domain. Requires the Noibu MCP connector."
+description: "Find evidence-backed A/B test opportunities for a Noibu-monitored ecommerce domain, aimed at the goal the user picks (add to cart rate, checkout starts, checkout completes, product or collection page views, a specific page, or all goals). Checks the domain has the traffic and instrumentation the goal needs, then combines 30 days of Noibu analytics with a read of the live site. With Claude in Chrome connected, it opens the store in a browser tab, reads the goal's pages and policy pages, and renders before/after previews; for cart and checkout goals it adds one item to the cart and removes it again. Without Chrome it works from Noibu data only. Publishes one page of ranked tests with their data, weekly traffic, setup, dev notes, and a button that creates the test as a Noibu draft, plus a candidates.json handoff. Writes no variation code. Use for A/B test ideas, CRO or experiment ideas, \"what should we test\", or previewing a test variation on a Noibu domain. Requires the Noibu MCP connector."
 ---
 
 # A/B Test Opportunity Finder (Noibu)
@@ -9,7 +9,8 @@ Produce a short list of A/B test recommendations for an ecommerce store,
 aimed at the goal the merchant cares about, that the merchant can read,
 look at, and create in Noibu without leaving one page. The bar for
 inclusion is high: every recommendation must be supported by measured
-Noibu data AND validated against the live site. Fewer, better-supported
+Noibu data AND, when a browser is available, validated against the live
+site. Fewer, better-supported
 tests beat a long speculative list.
 
 The deliverable is a single hosted "Recommended tests" page
@@ -25,7 +26,7 @@ the content and the captures, not the HTML. Next to the page, the run
 writes a `candidates.json` (`references/handoffs/candidates.md`): the same
 tests in a machine-readable shape, with the selectors and evidence a
 downstream skill needs to build one of them. It is published with the
-page as a supporting file and never mentioned in chat.
+page as a supporting file; the closing chat message does not repeat it.
 
 The run ends at the page. Writing the variation code, building a preview
 theme and QA belong to the skills that consume `candidates.json`; this
@@ -153,9 +154,13 @@ message. Anything that adds a serial step needs a reason.
   `noibu_list_domains` and use the result; do not stall on asking.
 
 Who runs it: anyone with read access to the domain in Noibu. The run
-itself writes nothing to the store or the Noibu account; the only write is
-the published page (and the draft a viewer creates by clicking a button,
-with their own credentials). A skill that builds a test from
+changes nothing in the Noibu account. On the store, its only effect is the
+cart round trip for cart and checkout goals: `add_to_cart.js` adds one
+in-stock item and `clear_cart.js` removes it, the add shows up in the
+store's analytics, and the closing message says so (quiet-mode rule 6). It
+never fills in a checkout field or places an order. Its other writes are
+the published page and the draft a viewer creates by clicking a button,
+with their own credentials. A skill that builds a test from
 `candidates.json` needs the merchant's own repository and platform
 connections; this skill does not, and it never asks for a codebase.
 
@@ -572,7 +577,7 @@ capability declared for the Noibu connector with exactly
 makes the button work; without it the page renders but every button says
 so). Then write the closing chat message in the fixed shape from
 quiet-mode rule 6. Do not render the page's content in the conversation,
-do not mention `candidates.json` in chat, and do not ask a follow-up
+do not list the supporting files in chat, and do not ask a follow-up
 question: the button on each test is the follow-up, taken by the person
 who decides, with their own credentials.
 
