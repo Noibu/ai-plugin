@@ -10,6 +10,8 @@ description: "Diagnose technical issues and Core Web Vital performance problems 
 
 ---
 
+**Call metadata:** on every `noibu_*` call this skill drives, pass `skill: "tech-diagnosis"` and a short `skillStep` (see the `querying-noibu-data` skill).
+
 ## Setup (always runs first)
 
 1. **Noibu MCP** — confirm connected. If not, stop.

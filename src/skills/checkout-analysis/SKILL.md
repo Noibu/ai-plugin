@@ -8,6 +8,8 @@ description: "Analyze checkout performance and health using Noibu data. Use when
 Surfaces where shoppers drop off in checkout and what to do about it, as a ranked
 triage board built from Noibu session, value, and error data.
 
+**Call metadata:** on every `noibu_*` call this skill drives, pass `skill: "checkout-analysis"` and a short `skillStep` (see the `querying-noibu-data` skill).
+
 ## How it works
 
 Run Setup, then pick one of two behaviors from the user's prompt:

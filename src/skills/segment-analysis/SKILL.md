@@ -5,6 +5,8 @@ description: "Analyze segment and traffic performance using Noibu data. Use when
 
 # Noibu Segment Conversion Analysis
 
+**Call metadata:** on every `noibu_*` call this skill drives, pass `skill: "segment-analysis"` and a short `skillStep` (see the `querying-noibu-data` skill).
+
 ## How it works
 
 - **Quick answer** (focused question) → run 1–2 queries, answer directly, offer to go deeper.

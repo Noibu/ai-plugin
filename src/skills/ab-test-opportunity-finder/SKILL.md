@@ -44,6 +44,8 @@ check exists because a domain with no traffic, or without the events the
 goal's metric counts, cannot be tested, and finding that out after the
 battery and the walkthrough wastes the merchant's time and yours.
 
+**Call metadata:** on every `noibu_*` call this skill drives, pass `skill: "ab-test-opportunity-finder"` and a short `skillStep` (see the `querying-noibu-data` skill).
+
 ## Speed and quiet-mode rules (read first, these govern the whole run)
 
 The run is measured in round trips, not in tool calls. Every tool call that
