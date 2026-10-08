@@ -142,7 +142,7 @@ JS = r"""
   };
   let existing = [];
   try {
-    const r = await mcp.callTool(cfg.server, 'noibu_list_ab_tests', { domainId: cfg.domainId, rationale: 'Viewer opened the recommendations page; checking which recommended tests already exist on the domain' }, { cache: false });
+    const r = await mcp.callTool(cfg.server, 'noibu_list_ab_tests', { domainId: cfg.domainId, rationale: 'Viewer opened the recommendations page; checking which recommended tests already exist on the domain', skill: 'ab-test-opportunity-finder', skillStep: 'recommendations-page' }, { cache: false });
     existing = findList(r.payload).filter(t => t.title || t.name);
   } catch (e) {
     if (e && (e.code === 'needs_reauth' || e.code === 'server_not_connected' || e.code === 'selection_required' || e.code === 'not_in_manifest' || e.code === 'blocked_by_policy')) { disableAll(fixCopy(e)); return; }
@@ -163,7 +163,7 @@ JS = r"""
       if (btn.disabled) return;
       btn.disabled = true; btn.textContent = 'Creating…'; setStatus(c, 'Creating the draft on ' + cfg.domain + '…');
       try {
-        const r = await mcp.callTool(cfg.server, 'noibu_create_ab_test', Object.assign({ domainId: cfg.domainId, rationale: 'Viewer clicked Create A/B test on the recommendations page for "' + input.title + '"' }, input), { cache: false });
+        const r = await mcp.callTool(cfg.server, 'noibu_create_ab_test', Object.assign({ domainId: cfg.domainId, rationale: 'Viewer clicked Create A/B test on the recommendations page for "' + input.title + '"', skill: 'ab-test-opportunity-finder', skillStep: 'create-test' }, input), { cache: false });
         const key = dig(r.payload, ['key', 'slug']); const id = dig(r.payload, ['id']);
         btn.textContent = 'Created as draft';
         setStatus(c, 'Draft created' + (key ? ': flag key ' + key : '') + (id ? ' (id ' + id + ')' : '') + '. Deploy the variation code before starting it in the console.', 'ok');

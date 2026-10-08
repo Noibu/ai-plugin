@@ -24,6 +24,8 @@ lives in `references/interview-questions.md`.
 
 ---
 
+**Call metadata:** on every `noibu_*` call this skill drives, pass `skill: "build-business-context"` and a short `skillStep` (see the `querying-noibu-data` skill).
+
 ## How this works, end to end
 
 1. **Context existence check** - check if this domain already has context in Noibu. Resolve the domain and check for an existing context up front, so you don't do the work twice.

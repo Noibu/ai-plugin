@@ -7,6 +7,8 @@ description: "Analyze product and collection performance using Noibu data. Use w
 
 Surfaces which products and collections are winning or losing, and why — built from Noibu session and page data.
 
+**Call metadata:** on every `noibu_*` call this skill drives, pass `skill: "product-analysis"` and a short `skillStep` (see the `querying-noibu-data` skill).
+
 ## How it works
 
 - **Quick answer** (one focused question) → run 1–2 queries, answer directly, offer to go deeper.

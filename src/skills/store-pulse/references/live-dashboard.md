@@ -741,7 +741,7 @@ result as `html_path` to `create_artifact` (write it to a file first).
     return `${head} &middot; ${fmt(start)} &ndash; ${fmt(end)}`;
   }
 
-  // ===== Noibu MCP helper — domainId + rationale always supplied =====
+  // ===== Noibu MCP helper — domainId + rationale + skill always supplied =====
   // Detects error-shaped responses (auth-required, connector-disconnected, server errors)
   // and throws so the top-level spRender catch can surface them as a banner. Without this,
   // an auth-required response gets handed to noibuRecords(), which doesn't recognize the
@@ -792,7 +792,7 @@ result as `html_path` to `create_artifact` (write it to a file first).
     }
     const fire = () => window.cowork.callMcpTool(
       SP_NOIBU_TOOL,
-      { domainId: SP_CONFIG.domain.id, input, rationale: 'Store Pulse dashboard data fetch' }
+      { domainId: SP_CONFIG.domain.id, input, rationale: 'Store Pulse dashboard data fetch', skill: 'store-pulse', skillStep: 'live-dashboard' }
     );
 
     for (let attempt = 0; ; attempt++) {

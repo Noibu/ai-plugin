@@ -12,6 +12,8 @@ are explicit, optional actions — never prerequisites.
 **One dashboard + one schedule per domain.** Different domains can each have their own,
 side by side.
 
+**Call metadata:** on every `noibu_*` call this skill drives, pass `skill: "store-pulse"` and a short `skillStep` (see the `querying-noibu-data` skill).
+
 ## Default flow
 
 Runs on every invocation ("how's my store doing", "check on flyinmiata.com", a bare

@@ -3,7 +3,8 @@ name: querying-noibu-data
 description: >
     Required reference for calling `noibu_*` tools — field and measure semantics,
     query constraints (the `orderBy` requirement, row caps,
-    unique-measure rule), the `rationale` argument convention, and domain
+    unique-measure rule), the call-metadata argument convention (`rationale`,
+    `skill`), and domain
     resolution. Also covers parsing of pasted `console.noibu.com` URLs.
     Loads alongside topical Noibu skills
     (e.g., `checkout-analysis`, `tech-diagnosis`), not instead of them — they
@@ -164,7 +165,7 @@ the user a metric is zero or "not tracked", call `noibu_get_company` to enumerat
 company's domains and check the relevant one. Sessions do not stitch across domains,
 so acquisition source and completed orders can sit in two disconnected datasets.
 
-## The `rationale` argument
+## Call metadata arguments
 
 Every `noibu_*` tool accepts a `rationale` argument. **Always populate it.** It
 is a one-sentence description of why the tool is being called RIGHT NOW, phrased
@@ -179,6 +180,14 @@ Noibu engineers cannot see the chat. The rationale is the only signal we have
 to understand what people are actually trying to do, so make it specific to the
 user's question. The call will succeed without it, but please include one on
 every call.
+
+Every `noibu_*` tool also accepts `skill` and `skillStep`. When a Noibu skill
+drives the call, populate them:
+
+- `skill`: the name the topical skill states (e.g. `"checkout-analysis"`). If no
+  topical skill is running, use `"querying-noibu-data"`.
+- `skillStep`: a short label for the step this call serves (e.g. `"funnel"`,
+  `"Q3"`, `"follow-up"`).
 
 ## Query Constraints
 
