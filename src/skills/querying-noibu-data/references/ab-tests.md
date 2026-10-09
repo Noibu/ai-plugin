@@ -22,9 +22,14 @@ Reading the verdict (`results.primaryMetric.bayesianAnalysis`):
 - vs-control numbers (`probabilityToBeat`, uplift, `credibleInterval95`) live per-arm under `comparisonToControl` — null on the control's own row, and on every row when the test named no control (arms are still ranked). `probabilityToBeBest` is a display ranking only — it gates nothing, and a winner's can sit below 95%.
 - On `TOO_EARLY` every figure is still reported — quote rates and probabilities if asked — but nothing is flagged and `recommendedVariation` is null. Report "not enough data to call it yet", never a tie and never a winner.
 
-Health checks (`results.guardrails`) — three checks: `sampleRatio` (traffic-split mismatch), `errorRate`, `lcpP95`, each `PASS` | `WARN` | `NOT_EVALUATED`. A `WARN` never invalidates the verdict but must be reported alongside it ("winner, with warnings"). `NOT_EVALUATED` early in a test is normal; `notEvaluatedReason` says why. `BELOW_SAMPLE_FLOOR` is the guardrail's own floor, unrelated to the gates `TOO_EARLY` reports against — and lcpP95's floor only bars an arm from being the baseline; a below-floor arm is still compared and can still be flagged.
+Health checks (`results.guardrails`) — three checks, each `PASS` | `WARN` | `NOT_EVALUATED`:
 
-Estimated time to a decision (`estimate`) — present for draft and running tests. The estimate and the verdict share one bar: `requiredSessionsPerVariation`, `requiredConversionsPerVariation`, and `minimumRuntimeDays` are the same three gates `TOO_EARLY` reports against — never present them as two opinions, and on `TOO_EARLY` name the gate still open rather than only the day count. `estimatedDays` is never below `minimumRuntimeDays`; for a `PAGE_VIEW_TO_URL_RATE` success metric the conversion gate is not projected, so hedge the day count. `isCapped` at 365 days can mean a gate that never opens — say the test cannot reach a verdict as configured. `status: INSUFFICIENT_TRAFFIC` means too few recent targeted sessions to estimate.
+- `sampleRatio` — traffic landed in the configured split; a mismatch undermines the comparison itself, not just the result.
+- `errorRate` — the share of each variation's sessions that encountered at least one of the domain's priority issues.
+- `lcpP95` — whether one variation loads materially slower at the 95th percentile of Largest Contentful Paint.
+
+A `WARN` never invalidates the verdict but must be reported alongside it ("winner, with warnings"). `NOT_EVALUATED` early in a test is normal; `notEvaluatedReason` says why. `BELOW_SAMPLE_FLOOR` is the guardrail's own floor, unrelated to the gates `TOO_EARLY` reports against — and lcpP95's floor only bars an arm from being the baseline; a below-floor arm is still compared and can still be flagged.
+
 
 ## Result validity caveats
 
