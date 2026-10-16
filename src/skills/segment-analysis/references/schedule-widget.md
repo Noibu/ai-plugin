@@ -13,6 +13,8 @@ The widget renders fully expanded.
 .fcard{padding:14px 10px;font-size:13px;font-weight:500;text-align:center;border-radius:var(--border-radius-md);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px;background:var(--color-background-primary) !important;border:1px solid var(--color-border-tertiary) !important;color:var(--color-text-secondary) !important;}
 .fcard.on{background:#E6F1FB !important;border:1.5px solid #185FA5 !important;color:#0C447C !important;}
 .slabel{font-size:11px;font-weight:500;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:0.07em;margin:0 0 10px;}
+.btn-primary{padding:7px 20px;font-size:13px;font-weight:500;color:var(--on-primary) !important;background:var(--fill-primary) !important;border:none !important;border-radius:var(--radius);cursor:pointer;}
+.btn-primary:hover{background:var(--fill-primary-hover) !important;}
 </style>
 
 <div style="border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);background:var(--color-background-primary);overflow:hidden;">
@@ -57,7 +59,7 @@ The widget renders fully expanded.
 
     <div style="display:flex;justify-content:flex-end;align-items:center;gap:12px;border-top:0.5px solid var(--color-border-tertiary);padding-top:16px;">
       <button onclick="sendPrompt('Skip scheduling for now')" style="padding:7px 16px;font-size:13px;font-weight:500;color:var(--color-text-secondary);background:transparent;border:none;cursor:pointer;">Skip</button>
-      <button onclick="submitSchedule()" style="padding:7px 20px;font-size:13px;font-weight:500;color:var(--color-text-primary);background:var(--color-background-secondary);border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);cursor:pointer;">Schedule analysis</button>
+      <button onclick="submitSchedule()" class="btn-primary">Schedule analysis</button>
     </div>
   </div>
 </div>
