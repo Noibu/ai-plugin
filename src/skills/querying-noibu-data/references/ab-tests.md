@@ -30,6 +30,8 @@ Health checks (`results.guardrails`) — three checks, each `PASS` | `WARN` | `N
 
 A `WARN` never invalidates the verdict but must be reported alongside it ("winner, with warnings"). `NOT_EVALUATED` early in a test is normal; `notEvaluatedReason` says why. `BELOW_SAMPLE_FLOOR` is the guardrail's own floor, unrelated to the gates `TOO_EARLY` reports against — and lcpP95's floor only bars an arm from being the baseline; a below-floor arm is still compared and can still be flagged.
 
+Estimated time to a decision (`estimate`) — present for draft and running tests. `estimatedDays` is a planning floor from the test's start, not time remaining (it never shrinks), and once the verdict is anything but `TOO_EARLY` every gate is met, so don't cite it. The estimate and the verdict share one bar: `requiredSessionsPerVariation`, `requiredConversionsPerVariation`, and `minimumRuntimeDays` are the same three gates `TOO_EARLY` reports against — never present them as two opinions, and on `TOO_EARLY` name the gate still open rather than only the day count. `estimatedDays` is never below `minimumRuntimeDays`; for a `PAGE_VIEW_TO_URL_RATE` success metric the conversion gate is not projected, so hedge the day count. `isCapped` at 365 days can mean a gate that never opens — say the test cannot reach a verdict as configured. `status: INSUFFICIENT_TRAFFIC` means too few recent targeted sessions to estimate.
+
 
 ## Result validity caveats
 
