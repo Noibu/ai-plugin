@@ -71,8 +71,10 @@ say in one line that the reports are open in the side panel (the card was
 the only way to ask for them, so without it the person would have no way
 to see a report).
 
-The card is the message, with no text before or after it (quiet-mode
-rule 6). A recap under it would say the same thing twice.
+No text before the card. After it, end the turn with exactly this line
+and nothing else (quiet-mode rule 6):
+
+> Pick a test on the card above when you're ready.
 
 Do not render a card from memory after a context compaction; re-read
 its HTML file, or rebuild it from `page.json` first.

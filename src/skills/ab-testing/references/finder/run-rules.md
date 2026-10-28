@@ -135,41 +135,22 @@ card. Anything that adds a serial step needs a reason.
    the environment has one. Mark a task complete inside whatever message
    you send next, never in a message of its own. Write one sentence in chat
    only if you hit a blocker, or when readiness stops the run (Block 2).
-6. **Report-only output.** The per-test reports are not published during
-   the run, because publishing with the Artifact tool opens a page in the
-   side panel. They are built into the working folder and each is
-   published only when the person clicks its "Learn why and preview variation" button on the
-   findings card (or, at the end of an unattended run, all of them). Do
-   not paste a URL and do not reproduce the recommendations in the chat.
-   The run ends with one message holding the findings card
-   (`references/findings-card.md`), with no text before or after it: the
-   card's buttons say what to do, the reasoning is on each report, and a
-   recap would bury the card. Everything worth telling the person goes on
-   every report as `page.json` `caveats` footer lines, one short line each, only
-   when it applies (never how many candidates were considered, killed or
-   made the cut, or why fewer than three tests remain: those go in `run.killed`
-   in `candidates.json`, not on the report): which browser read the site, or
-   that none did (structural claims inferred, previews missing), with the
-   suggestion to run again from the Claude desktop app with Claude in
-   Chrome connected, where the store is read in the built-in browser,
-   mobile previews show at phone size in the app and desktop previews at
-   full size in Chrome; when the goal's site read used the cart
-   path, that one item was added to and removed from the cart; a tab left
-   open showing a variation, which one and in which browser (the built-in
-   browser pane for mobile, the Chrome tab for desktop); desktop previews
-   taken in the built-in browser because Chrome was not connected or its
-   window stayed in the background; the goal defaulted to "All goals";
-   thin traffic, so Noibu's days-to-verdict estimate at setup decides
-   whether a test is worth running; the store serves several markets and
-   the page is written for the top one; no business context is saved
-   (`build-business-context` would sharpen the hypotheses); the browser
-   was served a localized storefront most traffic does not see. The one
-   thing said in chat is a change to what the person asked for that they
-   would otherwise miss: the goal was switched (checkout runs on another
-   domain, or the chosen metric is not measurable here). That gets one
-   plain sentence before the findings card, and nothing else does. The
-   findings card is the only place the tests are summarized in the chat,
-   and it is generated, never written.
+6. **The run ends on the findings card and one fixed line.** Reports are
+   built into the working folder, not published; each is published when its
+   "Learn why and preview variation" button is clicked (or all of them at
+   the end of an unattended run). The last thing in the turn is the
+   findings card (`references/findings-card.md`) with no text before it,
+   then exactly this line and nothing else: "Pick a test on the card above when you're ready." No URL, no summary. Anything you would want to tell the person goes into
+   `page.json` `caveats` as one short footer line each, only when it
+   applies: which browser read the site, or that none did (suggest a
+   re-run from the desktop app with Claude in Chrome connected); that one
+   item was added to and removed from the cart; a tab left open on a
+   variation, and in which browser; desktop previews taken in the built-in
+   browser; the goal defaulted to "All goals" or was switched (checkout on
+   another domain, metric not measurable here); thin traffic; several
+   markets, page written for the top one; no business context saved; a
+   localized storefront most traffic does not see. Candidate counts and
+   kills go in `run.killed` in `candidates.json`, never on the report.
 7. **Read each reference once, in a message that is already going
    out.** Read `references/noibu-query-battery.md` and
    `references/site-validation.md` in Block 1 (the battery is needed for

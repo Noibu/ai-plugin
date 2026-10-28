@@ -143,8 +143,8 @@ volume is shown at setup), which
 conditional site stops to plan for (`references/site-validation.md`), and
 the inclusion rule in Phase 3 that every shipped test uses the goal's
 metric. A checkout-completes goal on a domain whose completion counters
-are zero (Batch 1 check #4) cannot be measured; say so in one sentence
-before the findings card (quiet-mode rule 6) and ship the tests against the checkout-starts metric (Viewed
+are zero (Batch 1 check #4) cannot be measured; say so in a `caveats` line
+(quiet-mode rule 6) and ship the tests against the checkout-starts metric (Viewed
 page: page group Checkout) instead. A goal whose metric the readiness
 check shows is not instrumented at all is handled in Block 2, before any
 battery runs.
@@ -208,7 +208,7 @@ them together and decide before anything else runs:
   add-to-cart or checkout goal, ask once with `AskUserQuestion` whether to
   switch to page-view goals (Product, Collection, Checkout page group, or
   a URL) or stop; if the user is not there to answer, continue with
-  page-view goals and one sentence before the findings card saying so. Either way the reports' footer carries
+  page-view goals and a `caveats` line saying so. Either way the reports' footer carries
   one line saying the cart and checkout events are not instrumented and
   that fixing that comes before any cart or checkout test.
 - **Thin traffic (under about 15,000 sessions in 30 days):** continue,
@@ -232,7 +232,7 @@ them together and decide before anything else runs:
      another goal: Increase add to cart rate (Recommended) · Increase
      page views (product pages, collection pages, or one specific page) ·
      Stop here. Unattended, or no answer: Increase add to cart rate, with
-     one sentence before the findings card saying so. "All goals" continues across add to
+     a `caveats` line saying so. "All goals" continues across add to
      cart rate and page-view metrics only. The checkout-entry stop of the
      site read never runs on a split-checkout store.
   3. **Record it:** the data line says "checkout runs on <sibling host>;
