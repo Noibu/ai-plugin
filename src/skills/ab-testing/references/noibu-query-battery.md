@@ -51,7 +51,7 @@ and, worse, tempts a load of the 30k-token tool schema: copy the shape.
 
 ## Readiness (Block 2, one message, four parallel reads; decides whether the battery runs)
 
-These are reads, not a batch: each returns a handful of rows. SKILL.md
+These are reads, not a batch: each returns a handful of rows. `references/finder/goal-and-readiness.md`
 Block 2 says what each outcome means; this section says what to call.
 
 - **R1 Data connection** — `noibu_check_data_connection` with the domain
@@ -81,7 +81,7 @@ Block 2 says what each outcome means; this section says what to call.
    MEDIAN(CHECKOUT_COMPLETE_TOTAL_VALUE).
    **Country sibling, same message:** the same measures groupBy
    COUNTRY_CODE, orderBy COUNT desc, limit 10. Two jobs: it is the
-   multi-market signal (SKILL.md "Multi-market stores": two or more
+   multi-market signal (`references/finder/phases.md`, "Multi-market stores": two or more
    countries above about 10% of sessions with conversion rates that
    differ severalfold), and it exposes a blank-country row that carries
    real volume at near-zero conversion, which is excluded from every
@@ -167,6 +167,15 @@ Block 2 says what each outcome means; this section says what to call.
       Thresholds: LCP 2500ms good / 4000ms poor; CLS 0.1 / 0.25; INP 200ms
       / 500ms. Poor vitals on a test surface become a "Fix first" note.
       `{"measures":[{"aggregate":{"measureFunc":"COUNT","target":{"field":"PAGE_VISIT_ID"},"measureAlias":"visits"}},{"aggregate":{"measureFunc":"QUANTILE_75","target":{"field":"LCP"},"measureAlias":"lcp"}},{"aggregate":{"measureFunc":"QUANTILE_75","target":{"field":"INP"},"measureAlias":"inp"}},{"aggregate":{"measureFunc":"QUANTILE_75","target":{"field":"CLS"},"measureAlias":"cls"}}],"filters":[{"fieldFilter":{"fieldName":"DEVICE_TYPE","operator":"IS_ANY_OF","comparisonValues":["MOBILE"]}},{"fieldFilter":{"fieldName":"URL","operator":"IS_ANY_OF","comparisonValues":["/","/collections/<top>","/products/<top>"]}}],"groupBy":{"fieldSegments":["URL"]},"orderBy":{"measureAlias":"visits","direction":"DESCENDING"},"limit":10}`
+    - **Landing bounce** (bounce-rate goal only, and only once the
+      catalogue has a bounce metric) — sessions groupBy [LANDING_URL,
+      DEVICE_TYPE]: COUNT, predefined BOUNCE_RATE, orderBy COUNT desc,
+      limit 25; for a page-group goal, add a filter LANDING_URL
+      STARTS_WITH the group's path (`/products/`, `/collections/`); for
+      the homepage, LANDING_URL EQUALS `/`. The highest-traffic landing
+      pages with the worst bounce, per device, are where candidates come
+      from.
+      `{"measures":[{"aggregate":{"measureFunc":"COUNT","target":{"field":"SESSION_ID"},"measureAlias":"sessions"}},{"predefined":{"measure":"BOUNCE_RATE","measureAlias":"bounce"}}],"filters":[{"fieldFilter":{"fieldName":"LANDING_URL","operator":"STARTS_WITH","comparisonValues":["/products/"]}}],"groupBy":{"fieldSegments":["LANDING_URL","DEVICE_TYPE"]},"orderBy":{"measureAlias":"sessions","direction":"DESCENDING"},"limit":25}`
     - **Search cohort** — sessions filtered SEARCH_COUNT ≥ 1, groupBy
       DEVICE_TYPE: COUNT, CONVERSION_RATE, and a filtered UNIQ(SESSION_ID)
       at CONVERSION_FUNNEL_DEPTH ≥ 1. If it returns zero rows, search
@@ -193,8 +202,14 @@ metric, not on whatever gap happened to be largest.
 | Checkout conversion rate | #4 first (zero completion counters means the goal is not measurable here: say so once and ship against checkout starts); #3 depth 2→4 by device; #7 exits at checkout URLs | Mobile web vitals on checkout URLs |
 | Product page views (Viewed page: page group Product) | #8 Product-group reach as the baseline; #5 collection and homepage exits and scroll reach; #9 clicks on the top collection page (sort, filters, cards, quick-add) | Search cohort |
 | Collection page views (Viewed page: page group Collection) | #8 Collection-group reach as the baseline; #5 homepage scroll reach vs where collection links sit; #10 landing attribution for cold traffic that never reaches a collection | Search cohort |
+| Bounce rate on page (only once the catalogue has a bounce metric) | The landing bounce query (optional list) as the baseline, for the chosen page or page group by device; #5 scroll reach, duration and exits on those pages (what the median lander sees before leaving); #9 clicks on the landing page (popup dismissals vs navigation); #10 for the page's paid-cold cohort | Landing bounce query (always, for this goal); Mobile web vitals on the landing pages (slow LCP is a common bounce cause, and a "Fix first" note rather than a test) |
 | Viewed page: <URL> | #5 for that URL and the pages that link to it; #9 clicks on the top linking page; #10 for that URL when it is a landing page | None |
 | All goals | Everything, ranked by evidence × exposure × effect | At most one, only if a candidate depends on it |
+
+A goal built from a catalogue metric with no row here: use the Batch 1
+results that measure it most directly, run no optional query for it, and
+write its traffic line as "volume shown at setup" unless a battery query
+already counts its event.
 
 ## Metric volume (the traffic line on every card)
 
@@ -211,6 +226,7 @@ ten times the events of another:
 | --- | --- |
 | Add to cart rate | reached funnel depth ≥ 1 (R2 or #3), in the targeting's device rows |
 | Checkout conversion rate | reached funnel depth 4 (R2 or #3) |
+| Bounce rate on page | landed on that page or page group (the landing bounce query's session count), written as "About N sessions a week land on <page> in this targeting." |
 | Viewed page: page group <name> | reached that page group (#8) |
 | Viewed page: <URL> | visited that URL (#5, or one extra page-visit COUNT filtered to the URL when #5 did not list it) |
 

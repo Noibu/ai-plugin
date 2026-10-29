@@ -1,11 +1,8 @@
-# NoibuFeatureFlag SDK: the one statement every A/B skill reads
+# NoibuFeatureFlag SDK: the one statement this skill's code reads
 
-Home: this file lives in the opportunity finder
-(`ab-test-opportunity-finder/references/shared/`), which owns it. Any
-skill that writes, reviews or QAs variation code cites it by that path
-(inside a plugin, `../ab-test-opportunity-finder/references/shared/noibu-feature-flag-sdk.md`)
+Every step that writes, reviews or QAs variation code cites this file
 and restates nothing from it; when the product moves, this file changes
-and the skills do not.
+and the rest of the skill does not.
 
 Sources: help.noibu.com articles 1676106141 and 1868677576 (re-read them if
 the product has moved on), the `querying-noibu-data/references/ab-tests.md`
@@ -163,10 +160,10 @@ documented helper above and does not introduce them unasked:
 - Never editing another test's flag file, or control-defining files such as
   `sections/header.liquid` and `layout/theme.liquid`, while tests run.
 
-## Open question for the plugin
+## Open question
 
 Which read is canonical for new code, `getStringValue` or
 `getStringDetails`? This file recommends the details read with the
 defensive field order because it also yields `reason` for QA, and keeps the
 simple read as the fallback. Settle it here once, against the SDK source,
-and every skill follows.
+and the rest of the skill follows.

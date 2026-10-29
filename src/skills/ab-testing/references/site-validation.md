@@ -22,9 +22,17 @@ in the JSON, a crash is a `scriptError` field), so a batch never stops on
 a site's quirks — only a navigation that lands somewhere unexpected stops
 it, and the fix-up rule below covers that.
 
-The rendered viewport is desktop and resizing is unreliable — never make
+The read runs at desktop size in either browser (in the built-in
+browser, every read call starts with `resize_window` `{"width": 1366,
+"height": 900}`, since the pane's own width is narrower than a desktop
+and some themes switch to a tablet layout there). Never make
 mobile-layout claims from this read; use the scroll/click query data for
-those.
+those. Mobile is looked at only in the built-in browser's mobile preview
+shots (`references/preview.md`).
+
+Tool names below are Claude in Chrome's; when the run uses the built-in
+browser, use the equivalents from the table in `references/finder/browser.md`
+(the `browser_batch` items and the scripts are identical).
 
 ## The scripts (`scripts/walkthrough/`)
 
@@ -60,6 +68,7 @@ cookies or page source. Say "consent banner".
 | --- | --- | --- |
 | Add to cart rate | read_home, read_policy, read_collection, read_pdp | top collection page by visits → `read_collection`; top product page by visits → `read_pdp` |
 | Product page views, Collection page views | read_home, read_policy, read_collection | top collection page by visits → `read_collection` (add `read_pdp` on the top product page for a product-views goal when #5 shows product pages as exits) |
+| Bounce rate on page (once live) | read_home, read_policy, plus `read_pdp` or `read_collection` for a product or collection goal | the top landing page in the goal's group from the landing bounce query → `read_pdp` / `read_collection`; the homepage needs no extra read. Note what is above the fold on first load: popups, consent banner, hero, and the first link to another page. No cart path |
 | Viewed page: \<URL\> | read_home, read_policy, plus the script that fits the URL | that URL → `read_pdp` for a product, `read_collection` for a listing, otherwise one `find` for the element the goal is about |
 | Checkout starts | read_home, read_policy, read_pdp, add_to_cart, read_cart, clear_cart | top product page → `read_pdp` → `add_to_cart` → cart URL → `read_cart` → `clear_cart` |
 | Checkout completes | the checkout-starts set plus click_checkout, read_checkout_entry | the checkout-starts path, with `click_checkout` → `read_checkout_entry` → back to the cart URL before `clear_cart` |
@@ -107,9 +116,10 @@ never one big call: it is one call per page (navigate, wait, that page's
 scripts with their chunk items, 15 to 30 seconds), all written in the
 same message. One call failing does not stop the calls after it.
 
-**Tab:** Block 2's `tabs_context_mcp` with `createIfEmpty: true` returns
-the tab id. Use it in every batch item; one tab for the whole read and
-the previews. Never close it during the read: closing a group's last tab
+**Tab:** the readiness message opened it (`preview_start` in the
+built-in browser, `tabs_context_mcp` with `createIfEmpty: true` in
+Chrome) and returned its id. Use it in every batch item; one tab for the
+whole read and the previews. Never close it during the read: closing a group's last tab
 removes the group, and a new tab costs a round trip of its own.
 
 **Writing the items.** Put each script into its item's `text` exactly as
@@ -119,7 +129,8 @@ the output has to be typed into the call again, which doubles the
 payload, and long outputs come back truncated.
 
 **Batch A — homepage and policies** (Block 3, beside the Batch 1 queries),
-one `browser_batch`: `navigate` store URL → `computer` wait 3 →
+one `browser_batch`: *(built-in browser only: `resize_window` 1366×900)* →
+`navigate` store URL → `computer` wait 3 →
 `read_home` + 3 chunk items → `read_policy` + 3 chunk items. `read_home`
 dismisses the consent banner and popups first (decline only, never accept;
 a banner with no decline control is left and noted). Its result gives the
@@ -157,7 +168,7 @@ Some stores redirect `/cart` to a drawer over another page; `read_cart`
 reads the drawer and says so in `surface`. Adding and removing one item
 is the maximum state-changing action; it happens only on cart and checkout
 goals and "all goals", it is reverted in the same message, and it is
-disclosed in one clause of the closing chat message.
+disclosed in a footer line on the page.
 
 **Fix-up rule.** A call stops at its first failing item and returns
 everything before it, a call that timed out returns nothing, and a script
@@ -207,7 +218,7 @@ look (a candidate the before shot contradicts is dropped there).
   which market the browser landed in on a locale-routed store
   (`/en-gb/`, `/fr-fr/`); `multiMarketHint` is true when the store routes
   by locale at all. Compare them with the data's top market and decide
-  whether a Phase 2 read under another prefix is needed (SKILL.md
+  whether a Phase 2 read under another prefix is needed (`references/finder/phases.md`,
   "Multi-market stores").
 - **Other testing tools.** `read_home.testingTools` lists experimentation
   tools loaded on the page (Optimizely, VWO, Convert, AB Tasty,
@@ -269,6 +280,8 @@ messaging") loses the threshold and the selectors.
   do this). If the banner offers no decline control, leave it unanswered and
   work around it; never click Accept on someone else's store.
 - Avoid clicking elements that trigger browser-native dialogs.
-- If the browser is unavailable, run what you can, mark every structural
-  claim as inferred-not-observed, and tell the user in one sentence which
-  claims a 10-minute manual walkthrough would firm up.
+- If no browser is available (neither the built-in browser nor Chrome),
+  run what you can, mark every structural claim as inferred-not-observed,
+  and let a footer line on the page suggest running from the Claude desktop
+  app with Claude in Chrome connected, where the built-in browser does the
+  read and the mobile previews and Chrome the desktop previews.

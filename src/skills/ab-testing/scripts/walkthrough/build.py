@@ -23,7 +23,7 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 SRC = HERE / "src"
 ORDER = [
-    "dismiss_consent", "read_home", "read_pdp", "add_to_cart", "read_cart",
+    "dismiss_consent", "settle_capture", "read_home", "read_pdp", "add_to_cart", "read_cart",
     "click_checkout", "read_checkout_entry", "clear_cart", "read_policy", "read_collection",
 ]
 HELPER_RE = re.compile(r"^const (\w+) = ", re.M)

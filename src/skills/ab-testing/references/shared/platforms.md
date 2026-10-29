@@ -1,10 +1,6 @@
 # Storefront platforms: where surfaces live, how a flag script loads, how to prove code is live
 
-Home: this file lives in the opportunity finder
-(`ab-test-opportunity-finder/references/shared/platforms.md`), which owns
-it; other A/B skills cite it by that path (inside a plugin,
-`../ab-test-opportunity-finder/references/shared/platforms.md`). It
-complements the platform files `tech-diagnosis` and `accessibility-audit`
+It complements the platform files `tech-diagnosis` and `accessibility-audit`
 keep (those classify errors and locate accessibility fixes; this one
 locates test surfaces and deployment proof). Identify the platform from
 the code tree when one is connected (the tree is the truth about what the
@@ -18,7 +14,7 @@ orchestrator asks how to prove the change is live before a test starts.
 
 | Platform | Where the surfaces usually live | How to see a change before it ships | How to prove the code is live |
 | --- | --- | --- | --- |
-| Shopify (Online Store 2.0) | `sections/main-product.liquid` (PDP), `sections/main-cart-items.liquid` or a cart drawer snippet (cart), `sections/header.liquid` + `announcement-bar.liquid` (bar), `sections/main-collection-product-grid.liquid` (collection); CSS in `assets/`; JS in `assets/*.js`; sections placed via `templates/*.json` or section-group JSON | An unpublished preview theme: duplicate MAIN, upload only the changed files, open `https://<domain>/?preview_theme_id=<id>`; Shopify caps a store at 20 themes and the API cannot delete them | Admin API `theme.files` `checksumMd5` on the MAIN theme matches the merged files; themes deployed from GitHub can lag a minute; then fetch the served asset and look for the flag key |
+| Shopify (Online Store 2.0) | `sections/main-product.liquid` (PDP), `sections/main-cart-items.liquid` or a cart drawer snippet (cart), `sections/header.liquid` + `announcement-bar.liquid` (bar), `sections/main-collection-product-grid.liquid` (collection); CSS in `assets/`; JS in `assets/*.js`; sections placed via `templates/*.json` or section-group JSON | An unpublished preview theme: duplicate MAIN, upload only the changed files, open `https://<domain>/?preview_theme_id=<id>`; Shopify caps the theme library by plan (Starter: only the Spotlight theme, so no preview theme; Basic, Grow and Advanced: 20; Plus: 100), theme names are at most 50 characters, and `themeDelete` exists but, like `themeFilesUpsert`, needs Shopify's exemption | Admin API `theme.files` `checksumMd5` on the MAIN theme matches the merged files; themes deployed from GitHub can lag a minute; then fetch the served asset and look for the flag key |
 | Shopify (Hydrogen / headless) | `app/routes/products.$handle.tsx`, `app/components/Cart*.tsx`, `app/components/Header.tsx` | The host's preview deployment (Oxygen or the hosting provider's per-branch URL) | Fetch the production bundle and look for the flag key; the hosting provider's deployment status for the commit |
 | Salesforce Commerce Cloud | `cartridges/<app>/cartridge/templates/default/product/productDetails.isml`, `cart/cart.isml`, `components/header/*.isml`; client JS under `cartridge/client/default/js/` | A staging or development instance URL the merchant provides | Code version activated on production matches the commit; fetch the served static asset and look for the flag key |
 | Magento 2 | `app/design/frontend/<Vendor>/<theme>/Magento_Catalog/templates/product/view/*.phtml`, `Magento_Checkout/templates/cart/*.phtml`, layout XML under `Magento_Theme/layout/` | A staging environment URL the merchant provides | Deployed static content (`pub/static/.../<theme>/`) contains the flag script; fetch it from production and look for the flag key |
