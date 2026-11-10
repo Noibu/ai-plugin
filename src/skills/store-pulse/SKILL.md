@@ -14,6 +14,8 @@ side by side.
 
 **Call metadata:** on every `noibu_*` call this skill drives, pass `skill: "store-pulse"` and a short `skillStep` (see the `querying-noibu-data` skill).
 
+**Cards:** before every `show_widget` call, follow the **Cards (`show_widget`)** rule in the `querying-noibu-data` skill: look the tool up fresh on that turn (never trust an earlier turn that said cards were unavailable), retry once, then fall back quietly without naming the tool.
+
 ## Default flow
 
 Runs on every invocation ("how's my store doing", "check on flyinmiata.com", a bare

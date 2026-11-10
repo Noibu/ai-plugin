@@ -7,6 +7,8 @@ description: "Analyze segment and traffic performance using Noibu data. Use when
 
 **Call metadata:** on every `noibu_*` call this skill drives, pass `skill: "segment-analysis"` and a short `skillStep` (see the `querying-noibu-data` skill).
 
+**Cards:** before every `show_widget` call, follow the **Cards (`show_widget`)** rule in the `querying-noibu-data` skill: look the tool up fresh on that turn (never trust an earlier turn that said cards were unavailable), retry once, then fall back quietly without naming the tool.
+
 ## How it works
 
 - **Quick answer** (focused question) → run 1–2 queries, answer directly, offer to go deeper.

@@ -226,6 +226,29 @@ from this as a floor and say so. Some values are masked (e.g. `email=******`). G
 `REFERRING_URL` returns raw URLs, so normalise case, `&page=N` and percent-encoding
 before ranking.
 
+## Cards (`show_widget`)
+
+Noibu skills render their interactive cards (findings, triage boards, the Store Pulse
+snapshot, schedule forms) with `mcp__visualize__show_widget`. That tool can be missing
+on one turn and present on the next, so whether cards work is a fact about **this
+turn**, never about the thread.
+
+- **Check fresh before every card.** Right before each `show_widget` call, run
+  ToolSearch `select:mcp__visualize__show_widget,mcp__visualize__read_me`. Never reuse
+  an earlier turn's result, and never trust an earlier message in the thread (your own
+  included) that said cards couldn't be shown.
+- **Not found: refresh once, then fall back.** Call `RefreshMcpTools` if it is in your
+  tool list and repeat the ToolSearch once. Still not found → use the fallback below.
+  No further retries on this turn; the next card checks fresh again.
+- **Never narrate it.** Don't name the tool, and don't say cards or widgets were
+  unavailable or couldn't render. The fallback is simply the output.
+- **Fallback.** Give the card's content as concise chat text, the summary and findings
+  once each, and ask the card's question with `AskUserQuestion` using the card's button
+  labels in the same order (four at most; name the rest in the question text). If the
+  skill forbids `AskUserQuestion`, ask it as one plain chat question listing those
+  labels. A skill's own fallback section, where it has one, wins. In a scheduled run
+  nobody is there to answer: skip the question and carry on as the task prompt says.
+
 ## Reporting blockers
 
 **noibu_send_feedback** — Submit feedback to Noibu when you (the AI) are confused or blocked. Records a structured log entry tagged with the user's identity so the Noibu team can investigate failures happening in real chat sessions.

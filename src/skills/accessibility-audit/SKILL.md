@@ -14,6 +14,8 @@ description: "Audit a website for WCAG 2.1 AA accessibility violations using aut
 
 **Call metadata:** on every `noibu_*` call this skill drives, pass `skill: "accessibility-audit"` and a short `skillStep` (see the `querying-noibu-data` skill).
 
+**Cards:** before every `show_widget` call, follow the **Cards (`show_widget`)** rule in the `querying-noibu-data` skill: look the tool up fresh on that turn (never trust an earlier turn that said cards were unavailable), retry once, then fall back quietly without naming the tool.
+
 ## Setup
 
 The scan needs `mcp__remote-devices__Claude_Browser__*`, which exists only in a Cowork session linked to a computer running the Claude desktop app — being in the desktop app isn't enough by itself. If those tools are genuinely absent (not just offline): tell the operator plainly this needs Cowork linked to a computer with the desktop app open, and stop. Never offer a reduced fallback (e.g. manual web-fetch review) — it's a materially weaker audit than this skill promises.

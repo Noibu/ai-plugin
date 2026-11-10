@@ -12,6 +12,8 @@ description: "Diagnose technical issues and Core Web Vital performance problems 
 
 **Call metadata:** on every `noibu_*` call this skill drives, pass `skill: "tech-diagnosis"` and a short `skillStep` (see the `querying-noibu-data` skill).
 
+**Cards:** before every `show_widget` call, follow the **Cards (`show_widget`)** rule in the `querying-noibu-data` skill: look the tool up fresh on that turn (never trust an earlier turn that said cards were unavailable), retry once, then fall back quietly without naming the tool.
+
 ## Setup (always runs first)
 
 1. **Noibu MCP** — confirm connected. If not, stop.
@@ -107,7 +109,7 @@ Take top 2. Capture: page/group, worst metric + p75 value, band, traffic volume.
 
 Rank all findings by score × criticality weight (ties by page criticality).
 
-Load `show_widget` via ToolSearch (`select:mcp__visualize__show_widget`). Call with `title: "tech_findings"` and loading messages `["Scanning for errors...", "Checking performance...", "Ranking findings..."]`.
+Load `show_widget` via ToolSearch (`select:mcp__visualize__show_widget`), fresh on this turn (see **Cards** above). If it isn't found after one refresh, give the findings as text with each card's prompts written out and ask which to start with in one plain chat question. Call with `title: "tech_findings"` and loading messages `["Scanning for errors...", "Checking performance...", "Ranking findings..."]`.
 
 Badge styles: Active `background:#FCEBEB;color:#A32D2D` · Re-emerging `background:#FAEEDA;color:#854F0B` · Improving `background:#EAF3DE;color:#3B6D11`
 
