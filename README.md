@@ -1,6 +1,6 @@
 # Noibu AI Plugin
 
-Official Noibu plugin for AI clients. Access Noibu products direclty from your AI coding tool.
+Official Noibu plugin for AI clients. Access Noibu products directly from your AI coding tool.
 
 ## Description
 
@@ -8,6 +8,11 @@ Built for ecommerce, the Noibu plugin bridges the gap between customer experienc
 directly to your store's session, error, and conversion data through Noibu — and to the marketing, support, and commerce
 platforms that put insight into motion. Go beyond analysis: surface what's costing you revenue, take action across your
 stack, build workflows to automate work end-to-end.
+
+## What's included
+
+- **Noibu MCP connector** (`src/.mcp.json`): installing the plugin adds the Noibu MCP server (`https://mcp.noibu.com/mcp`). Users sign in to Noibu the first time they use it.
+- **Skills** (`src/skills/`): workflows built on the Noibu tools.
 
 ## Installation
 
@@ -17,6 +22,7 @@ stack, build workflows to automate work end-to-end.
 2. Go to **Customize**
 3. Click **Create plugin** → **Upload plugin**
 4. Upload the `noibu.zip` file
+5. Sign in to Noibu when prompted
 
 ### Claude Code
 
@@ -27,6 +33,8 @@ Install directly from the marketplace — no download required:
 /plugin install noibu@noibu-plugins
 /reload-plugins
 ```
+
+Then run `/mcp`, select **plugin:noibu:noibu**, and sign in to Noibu.
 
 ## Releases & distribution
 
@@ -57,7 +65,13 @@ and `enabledPlugins: { "noibu@noibu-plugins": true }`.
 ## How to develop
 
 1. Clone and install the plugin
-2. Authenticate with Noibu
+2. Sign in to Noibu (`/mcp` → **plugin:noibu:noibu** in Claude Code)
+
+- **Packaging:** `task pack` and the release workflow zip `.claude-plugin`, `.mcp.json` and `skills`. Keep `.mcp.json` in both, or releases ship without the connector.
+- **Connection check:** every skill opens with the same **Noibu connection check** section. Edit it in every `SKILL.md` together.
+- **Plugin overview:** the answer to "what can the Noibu plugin do?" lives in `querying-noibu-data/SKILL.md`.
+- **Routing:** skill descriptions include everyday phrasings ("how's my site doing", "why are sales down") so broad questions reach a skill.
+- **Duplicate tools:** users who also added the standalone Noibu connector should disconnect it.
 
 ## Documentation
 
@@ -90,8 +104,9 @@ revenue heatmaps, and act on the highest friction.
 **Turn product views into sales**: Find which products and collections are getting views but no sales, diagnose
 why they aren't converting, and execute on the biggest opportunities.
 
-**Example 6:
-Shift marketing spend with site behaviour**: Surface which campaigns are sending high-quality traffic, identify
+### Example 6:
+
+**Shift marketing spend with site behaviour**: Surface which campaigns are sending high-quality traffic, identify
 how to lift upper-funnel conversion, and reallocate budget accordingly.
 
 ## License

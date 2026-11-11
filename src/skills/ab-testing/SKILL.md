@@ -1,15 +1,38 @@
 ---
 name: "ab-testing"
-description: "Find, build and launch A/B tests on a Noibu-monitored store: ranked test ideas from 30 days of Noibu data and the live site, flag-gated variation code, a pull request or Shopify preview theme, automated QA, and a started test. Use for \"what should we A/B test\", CRO or experiment ideas, building a specific test, implementing a test already found, or taking a Noibu draft test live. Requires the Noibu MCP connector."
+description: "Find, build and launch A/B tests on a Noibu-monitored store: ranked test ideas from 30 days of Noibu data and the live site, flag-gated variation code, a pull request or Shopify preview theme, automated QA, and a started test. Use for \"what should we A/B test\", CRO or experiment ideas, building a specific test, implementing a test already found, or taking a Noibu draft test live. Also use for \"how can I improve conversion\" or \"what should we change on the site\". Requires the Noibu MCP connector; use it even when Noibu isn't connected yet: the skill connects Noibu first."
 ---
 
 # Noibu A/B test (find, pick, build, run)
+
+## Noibu connection check
+
+Runs before anything else in this skill.
+
+- **Check:** Noibu is connected when a tool ending in `noibu_get_domain` is available (load it with ToolSearch if tools are deferred) and the first `noibu_*` call doesn't fail on authentication. Connected → continue with the skill silently.
+- **Not connected, user present:** stop the skill and reply with:
+  - **A message, every time** (including later questions in the same chat), before the question. Two or three sentences: restate the user's question, say what you'll do once connected (time windows, comparisons, what they'll get back, from this skill's workflow), and end with "First, Noibu needs to be connected." No numbers or guesses about their store. With no question, describe what the skill does by default. This overrides "work quietly" and "no narration" rules, which apply only once connected.
+    - Example: "Good question. I'll compare checkout over the last 30 days with the 30 days before, find the step where shoppers started dropping off, and check whether errors, devices or a segment explain it. First, Noibu needs to be connected."
+  - **Then one `AskUserQuestion`:**
+    - header: "Noibu"
+    - question: "To <what they asked, in a few words>, Noibu needs to be connected. Do you have a Noibu account?" (under 120 characters)
+    - options: "I have an account" ("Sign in to Noibu to connect it, then I'll continue") and "Start a free trial" ("Create a Noibu account at noibu.com/free-trial-claude")
+  - Never send the user to Settings or mention other connectors or Noibu servers (local, staging, test).
+- **"I have an account":**
+  - Desktop, Cowork or claude.ai (`suggest_connectors` available): call `search_mcp_registry(["noibu"])`, keep only the result whose `url` is exactly `https://mcp.noibu.com/mcp`, and call `suggest_connectors` once with only its `directoryUuid` and `keywords: ["store data"]`. Then say "Click **Connect** on the Noibu card to sign in, then tell me when you're done and I'll pick up where we left off." No match or an empty card → no second card; say "Open **Connectors**, find **Noibu**, and click **Connect** to sign in. Tell me when you're done and I'll pick up where we left off." Never mention `/mcp` here.
+  - Claude Code: say "Type `/mcp`, choose **plugin:noibu:noibu**, and select **Authenticate** to open the Noibu sign-in page. Tell me when you're done and I'll pick up where we left off."
+  - When they're done, check again. Connected → resume the original request without re-asking. Still not connected → say the tools can take a new session to appear, and stop.
+- **"Start a free trial":** reply only "[Start your free Noibu trial](https://www.noibu.com/free-trial-claude). Once your account is set up, run this again and choose **I have an account**." and stop.
+- **Any other reply:** answer briefly and offer the question again.
+- **Unattended (scheduled run):** no question or card; say "Noibu isn't connected, so this run couldn't read store data. Sign in to Noibu and the next run will work." and stop.
+
+---
 
 **Works best in Cowork, linked to a computer with the Claude desktop app open and Claude in Chrome connected**: Claude's built-in browser reads the store and shows mobile previews at phone size, and Claude in Chrome takes the desktop previews and screenshots at full desktop size. When one browser is missing or gets blocked, the other covers for it, and without either the run continues on Noibu data alone; see **Setup** below before anything else.
 
 Takes a Noibu-monitored store from "what should we test?" as far as the user wants: a code preview, a pull request, a Shopify preview theme, or a running experiment. Six stages, three human gates:
 
-0. Resolve the store domain to its Noibu UUID (one call; nothing else runs before the first card)
+0. Resolve the store domain to its Noibu UUID (one call; only the Noibu connection check runs before it)
 1. Find opportunities → **user picks one** (the three-option choose-a-test card is the first thing the user sees; "Look for new A/B test opportunities" runs the finder half of this skill, and "Implement an existing A/B test" opens a second card of the tests already found); then, once a test is picked, detect the environment (git host, commerce platform, how code reaches production) and ask setup questions only when needed
 1b. Summarize the picked test inline and **the user picks what to automate** (the run mode)
 2. Draft the test in Noibu, write the variation code (with Noibu's implementation code in it), open a pull request
@@ -327,7 +350,7 @@ The scheduled run depends on the built-in browser, and the built-in browser exis
 ## Rules that apply throughout
 
 - Platform- and host-specific steps run only when step 6 detected that platform/host. Never assume Shopify or GitHub.
-- **Connector cards only when the user has picked the thing they unlock.** Checking whether Shopify, a git host or any other connector is connected is done with `ToolSearch` plus one read call, silently; `SuggestConnectors` and `SearchMcpRegistry` are called in exactly two places, both in `references/run-modes.md` ("When the pick needs a connector"): after the user picks a pull-request mode with no working connector for their git host, including a git-host connector whose authentication fails partway through Stage 2d (ask where the code is hosted unless the failing connector already says, then recommend that host's connector if the registry has one; a dropped connection is offered as the card, never as instructions to re-authorise or a request to type `owner/repo`), and after they pick the Shopify theme preview with no Shopify connector, or when the Shopify connector's authentication fails partway through the run in any mode (recommend it, as a card, never as written re-authorisation steps). Nowhere else, and never `ListConnectors`, `SuggestPluginInstall` or `SuggestSkills`: a tile that appears before the user asked for anything reads as an interruption, while one that answers their pick reads as help. Anywhere else a missing connector matters, say so in one clause of a message the run was already going to send, and continue on the rung available.
+- **Connector cards only when the user has picked the thing they unlock.** Checking whether Shopify, a git host or any other connector is connected is done with `ToolSearch` plus one read call, silently; `SuggestConnectors` and `SearchMcpRegistry` are called in exactly two places, both in `references/run-modes.md` ("When the pick needs a connector"): after the user picks a pull-request mode with no working connector for their git host, including a git-host connector whose authentication fails partway through Stage 2d (ask where the code is hosted unless the failing connector already says, then recommend that host's connector if the registry has one; a dropped connection is offered as the card, never as instructions to re-authorise or a request to type `owner/repo`), and after they pick the Shopify theme preview with no Shopify connector, or when the Shopify connector's authentication fails partway through the run in any mode (recommend it, as a card, never as written re-authorisation steps). Nowhere else, except the Noibu connection check at the top of this skill (the Noibu connector card after the user picks "I have an account"), and never `ListConnectors`, `SuggestPluginInstall` or `SuggestSkills`: a tile that appears before the user asked for anything reads as an interruption, while one that answers their pick reads as help. Anywhere else a missing connector matters, say so in one clause of a message the run was already going to send, and continue on the rung available.
 - Call `noibu:store-preview-qa` only when the gate is open (6a); never on a non-Shopify store.
 - Theme file writes through the Shopify connector go only to an unpublished preview theme this run created or the user approved for reuse. Never to the live theme or any theme without the `nb-ab ` prefix.
 - Never delete a theme without the user's go-ahead for that exact theme in this run.

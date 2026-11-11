@@ -1,17 +1,72 @@
 ---
 name: querying-noibu-data
-description: >
-    Required reference for calling `noibu_*` tools — field and measure semantics,
-    query constraints (the `orderBy` requirement, row caps,
-    unique-measure rule), the call-metadata argument convention (`rationale`,
-    `skill`), and domain
-    resolution. Also covers parsing of pasted `console.noibu.com` URLs.
-    Loads alongside topical Noibu skills
-    (e.g., `checkout-analysis`, `tech-diagnosis`), not instead of them — they
-    own routing for their respective domains.
+description: "Load first when the user asks what the Noibu plugin can do, to be walked through it, or how to get started (e.g. \"I have the Noibu plugin. Please walk me through what it can do.\"); answer from its Plugin overview section, not from memory. Also the required reference for calling `noibu_*` tools: field and measure semantics, query constraints (`orderBy`, row caps, unique-measure rule), call metadata (`rationale`, `skill`), domain resolution, and pasted `console.noibu.com` URLs. Loads alongside topical Noibu skills, not instead of them."
 ---
 
 # Noibu MCP routing guide
+
+## Plugin overview
+
+Use when the user asks what the Noibu plugin can do, to walk them through it, or how to get started. This takes the place of the connection check below.
+
+- **Reply** with this overview (light rewording is fine; keep the groups, order and skills):
+
+  > The `noibu` plugin is a set of skills that sit on top of the Noibu MCP connector. Each one pulls your Noibu data and turns it into analysis or a deliverable. It has three groups.
+  >
+  > **Analysis skills** (answering "what's going on with this store?")
+  > - **store-pulse** gives a read on store health from the last 24 hours. You can save it as a live Cowork dashboard or schedule it as a recurring report.
+  > - **checkout-analysis** covers checkout funnel drop-off, payment and delivery method mix, completion rates, priority errors hurting checkout, and cart and order value benchmarks.
+  > - **product-analysis** covers underperforming products and collections, items with views but no sales, and where shoppers fall out of the product funnel.
+  > - **segment-analysis** compares channels, devices, and countries, including mobile vs desktop, and finds your best and worst converting segments.
+  >
+  > **Build and fix skills** (turning findings into shipped work)
+  > - **tech-diagnosis** finds what's broken across your store (errors, Core Web Vitals problems, error-rate spikes), traces the root cause, and fixes it, drafting a pull request with the fix when your code repo is connected.
+  > - **ab-testing** produces ranked test ideas from 30 days of Noibu data and the live site. It then builds flag-gated variations, opens a PR or Shopify preview theme, runs automated QA, and starts the test.
+  > - **accessibility-audit** scans for WCAG 2.1 AA violations using automated scanning plus Noibu traffic data. It can also draft the fixes as PRs or tickets.
+  >
+  > **Setup and reference skills**
+  > - **build-business-context** researches the business, interviews you, and writes a context file (CLAUDE.md style). It also saves that context to Noibu for the domain, so the other skills stop guessing about the store.
+  > - **querying-noibu-data** is the reference the other skills load alongside themselves: field and measure meanings, query rules, and how pasted `console.noibu.com` URLs are read.
+  >
+  > You don't have to pick a skill by name. Asking something like "why is checkout conversion down on mobile?" or "what should we A/B test?" routes to the right one.
+
+- **Ending:** check silently whether Noibu is connected (same check as below), then:
+  - **Not connected:** "To try these on your store, connect Noibu first:", then the connection check's `AskUserQuestion` with the question "To try these skills on your store, Noibu needs to be connected. Do you have a Noibu account?" Handle the answer as the connection check does, without its message. Once connected, show the skill picker.
+  - **Connected:** "Pick one to try it on your store, or type **build-business-context** to give Noibu context about your business first:", then the skill picker.
+- **Skill picker:** one `AskUserQuestion`, header "Try a skill", question "Which skill would you like to try?", options in this order:
+  - "tech-diagnosis": "Find and fix what's broken on your store"
+  - "ab-testing": "Get ranked A/B test ideas and launch one"
+  - "store-pulse": "See your store's health from the last 24 hours"
+  - "checkout-analysis": "Find where shoppers drop off in checkout"
+- **Rules:**
+  - Describe only this plugin's skills. Never mention other plugins, connectors or skills the user has installed, and don't tailor the list to their role.
+  - Don't say you're working from skill descriptions.
+  - When the user picks or types a skill, invoke it right away with the Skill tool (`noibu:<skill-name>`). Route a typed question to the matching skill.
+
+---
+
+## Noibu connection check
+
+Runs before anything else in this skill.
+
+- **Check:** Noibu is connected when a tool ending in `noibu_get_domain` is available (load it with ToolSearch if tools are deferred) and the first `noibu_*` call doesn't fail on authentication. Connected → continue with the skill silently.
+- **Not connected, user present:** stop the skill and reply with:
+  - **A message, every time** (including later questions in the same chat), before the question. Two or three sentences: restate the user's question, say what you'll do once connected (time windows, comparisons, what they'll get back, from this skill's workflow), and end with "First, Noibu needs to be connected." No numbers or guesses about their store. With no question, describe what the skill does by default. This overrides "work quietly" and "no narration" rules, which apply only once connected.
+    - Example: "Good question. I'll compare checkout over the last 30 days with the 30 days before, find the step where shoppers started dropping off, and check whether errors, devices or a segment explain it. First, Noibu needs to be connected."
+  - **Then one `AskUserQuestion`:**
+    - header: "Noibu"
+    - question: "To <what they asked, in a few words>, Noibu needs to be connected. Do you have a Noibu account?" (under 120 characters)
+    - options: "I have an account" ("Sign in to Noibu to connect it, then I'll continue") and "Start a free trial" ("Create a Noibu account at noibu.com/free-trial-claude")
+  - Never send the user to Settings or mention other connectors or Noibu servers (local, staging, test).
+- **"I have an account":**
+  - Desktop, Cowork or claude.ai (`suggest_connectors` available): call `search_mcp_registry(["noibu"])`, keep only the result whose `url` is exactly `https://mcp.noibu.com/mcp`, and call `suggest_connectors` once with only its `directoryUuid` and `keywords: ["store data"]`. Then say "Click **Connect** on the Noibu card to sign in, then tell me when you're done and I'll pick up where we left off." No match or an empty card → no second card; say "Open **Connectors**, find **Noibu**, and click **Connect** to sign in. Tell me when you're done and I'll pick up where we left off." Never mention `/mcp` here.
+  - Claude Code: say "Type `/mcp`, choose **plugin:noibu:noibu**, and select **Authenticate** to open the Noibu sign-in page. Tell me when you're done and I'll pick up where we left off."
+  - When they're done, check again. Connected → resume the original request without re-asking. Still not connected → say the tools can take a new session to appear, and stop.
+- **"Start a free trial":** reply only "[Start your free Noibu trial](https://www.noibu.com/free-trial-claude). Once your account is set up, run this again and choose **I have an account**." and stop.
+- **Any other reply:** answer briefly and offer the question again.
+- **Unattended (scheduled run):** no question or card; say "Noibu isn't connected, so this run couldn't read store data. Sign in to Noibu and the next run will work." and stop.
+
+---
 
 Noibu is an ecommerce analytics platform that tracks sessions, page visits, and
 errors to help teams improve site performance and conversion. The Noibu MCP server
