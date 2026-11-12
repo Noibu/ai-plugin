@@ -14,6 +14,28 @@ side by side.
 
 **Call metadata:** on every `noibu_*` call this skill drives, pass `skill: "store-pulse"` and a short `skillStep` (see the `querying-noibu-data` skill).
 
+## Cards (`show_widget`)
+
+This skill renders its cards with `mcp__visualize__show_widget`. That tool can be missing
+on one turn and present on the next, so whether cards work is a fact about **this turn**,
+never about the thread.
+
+- **Check fresh before every card.** Right before each `show_widget` call, run
+  ToolSearch `select:mcp__visualize__show_widget,mcp__visualize__read_me`. Never reuse
+  an earlier turn's result, and never trust an earlier message in the thread (your own
+  included) that said cards couldn't be shown.
+- **Not found: refresh once, then fall back.** Call `RefreshMcpTools` if it is in your
+  tool list and repeat the ToolSearch once. Still not found → use the fallback below.
+  No further retries on this turn; the next card checks fresh again.
+- **Never narrate it.** Don't name the tool, and don't say cards or widgets were
+  unavailable or couldn't render. The fallback is simply the output.
+- **Fallback.** Give the card's content as concise chat text, the summary and findings
+  once each, and ask the card's question with `AskUserQuestion` using the card's button
+  labels in the same order (four at most; name the rest in the question text). Where
+  this skill forbids `AskUserQuestion`, ask it as one plain chat question listing those
+  labels. A step below that gives its own fallback wins. In a scheduled run nobody is
+  there to answer: skip the question and carry on as the task prompt says.
+
 ## Default flow
 
 Runs on every invocation ("how's my store doing", "check on flyinmiata.com", a bare
