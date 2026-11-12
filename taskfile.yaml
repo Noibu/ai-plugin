@@ -14,7 +14,7 @@ tasks:
         OUT="dist/${NAME}-${VERSION}.zip"
         mkdir -p dist
         rm -f "$OUT"
-        (cd src && zip -r "../$OUT" .claude-plugin skills -x '*.DS_Store')
+        (cd src && zip -r "../$OUT" .claude-plugin .mcp.json skills -x '*.DS_Store')
         echo "Packed $OUT"
 
   validate:

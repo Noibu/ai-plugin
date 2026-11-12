@@ -1,9 +1,32 @@
 ---
 name: store-pulse
-description: An instant, at-a-glance read on your store's health from the last 24 hours — with the option to save it as a live Cowork dashboard artifact or schedule a recurring report. Use to check on how the overall store is doing, save a live dashboard, or schedule a recurring summary.
+description: "An instant, at-a-glance read on your store's health from the last 24 hours — with the option to save it as a live Cowork dashboard artifact or schedule a recurring report. Use to check on how the overall store is doing, save a live dashboard, or schedule a recurring summary. Also the default for broad, open-ended questions about the store with no specific area named: \"how's my site doing\", \"how's my store doing\", \"how are things looking\", \"anything I should know about my store\", \"give me a health check\". Use it even when Noibu isn't connected yet: the skill connects Noibu first."
 ---
 
 # Store Pulse
+
+## Noibu connection check
+
+Runs before anything else in this skill.
+
+- **Check:** Noibu is connected when a tool ending in `noibu_get_domain` is available (load it with ToolSearch if tools are deferred) and the first `noibu_*` call doesn't fail on authentication. Connected → continue with the skill silently.
+- **Not connected, user present:** stop the skill and reply with:
+  - **A message, every time** (including later questions in the same chat), before the question. Two or three sentences: restate the user's question, say what you'll do once connected (time windows, comparisons, what they'll get back, from this skill's workflow), and end with "First, Noibu needs to be connected." No numbers or guesses about their store. With no question, describe what the skill does by default. This overrides "work quietly" and "no narration" rules, which apply only once connected.
+    - Example: "Good question. I'll compare checkout over the last 30 days with the 30 days before, find the step where shoppers started dropping off, and check whether errors, devices or a segment explain it. First, Noibu needs to be connected."
+  - **Then one `AskUserQuestion`:**
+    - header: "Noibu"
+    - question: "To <what they asked, in a few words>, Noibu needs to be connected. Do you have a Noibu account?" (under 120 characters)
+    - options: "I have an account" ("Sign in to Noibu to connect it, then I'll continue") and "Start a free trial" ("Create a Noibu account at noibu.com/free-trial-claude")
+  - Never send the user to Settings or mention other connectors or Noibu servers (local, staging, test).
+- **"I have an account":**
+  - Desktop, Cowork or claude.ai (`suggest_connectors` available): call `search_mcp_registry(["noibu"])`, keep only the result whose `url` is exactly `https://mcp.noibu.com/mcp`, and call `suggest_connectors` once with only its `directoryUuid` and `keywords: ["store data"]`. Then say "Click **Connect** on the Noibu card to sign in, then tell me when you're done and I'll pick up where we left off." No match or an empty card → no second card; say "Open **Connectors**, find **Noibu**, and click **Connect** to sign in. Tell me when you're done and I'll pick up where we left off." Never mention `/mcp` here.
+  - Claude Code: say "Type `/mcp`, choose **plugin:noibu:noibu**, and select **Authenticate** to open the Noibu sign-in page. Tell me when you're done and I'll pick up where we left off."
+  - When they're done, check again. Connected → resume the original request without re-asking. Still not connected → say the tools can take a new session to appear, and stop.
+- **"Start a free trial":** reply only "[Start your free Noibu trial](https://www.noibu.com/free-trial-claude). Once your account is set up, run this again and choose **I have an account**." and stop.
+- **Any other reply:** answer briefly and offer the question again.
+- **Unattended (scheduled run):** no question or card; say "Noibu isn't connected, so this run couldn't read store data. Sign in to Noibu and the next run will work." and stop.
+
+---
 
 Daily-driver ecommerce snapshot. Every invocation leads with a fresh inline answer (24h
 summary, KPI row, funnel). Saving a dashboard artifact and scheduling a recurring report

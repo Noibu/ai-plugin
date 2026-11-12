@@ -1,9 +1,32 @@
 ---
 name: tech-diagnosis
-description: "Diagnose technical issues and Core Web Vital performance problems using Noibu data, and recommend a fix. Use when you want to know what's broken across the store, why an error is happening, what's causing errors, the root cause of poor page performance, how to fix a technical issue, why an error rate spiked, or where errors are concentrated."
+description: "Diagnose technical issues and Core Web Vital performance problems using Noibu data, and fix them, drafting a pull request when the code repo is connected. Use when you want to know what's broken across the store, why an error is happening, what's causing errors, the root cause of poor page performance, how to fix a technical issue, why an error rate spiked, or where errors are concentrated. Also use for \"something's broken on my site\", \"my site is slow\", \"customers say a page won't load\", \"is anything broken\", or a bug on the store. Use it even when Noibu isn't connected yet: the skill connects Noibu first."
 ---
 
 # Tech Diagnosis
+
+## Noibu connection check
+
+Runs before anything else in this skill.
+
+- **Check:** Noibu is connected when a tool ending in `noibu_get_domain` is available (load it with ToolSearch if tools are deferred) and the first `noibu_*` call doesn't fail on authentication. Connected → continue with the skill silently.
+- **Not connected, user present:** stop the skill and reply with:
+  - **A message, every time** (including later questions in the same chat), before the question. Two or three sentences: restate the user's question, say what you'll do once connected (time windows, comparisons, what they'll get back, from this skill's workflow), and end with "First, Noibu needs to be connected." No numbers or guesses about their store. With no question, describe what the skill does by default. This overrides "work quietly" and "no narration" rules, which apply only once connected.
+    - Example: "Good question. I'll compare checkout over the last 30 days with the 30 days before, find the step where shoppers started dropping off, and check whether errors, devices or a segment explain it. First, Noibu needs to be connected."
+  - **Then one `AskUserQuestion`:**
+    - header: "Noibu"
+    - question: "To <what they asked, in a few words>, Noibu needs to be connected. Do you have a Noibu account?" (under 120 characters)
+    - options: "I have an account" ("Sign in to Noibu to connect it, then I'll continue") and "Start a free trial" ("Create a Noibu account at noibu.com/free-trial-claude")
+  - Never send the user to Settings or mention other connectors or Noibu servers (local, staging, test).
+- **"I have an account":**
+  - Desktop, Cowork or claude.ai (`suggest_connectors` available): call `search_mcp_registry(["noibu"])`, keep only the result whose `url` is exactly `https://mcp.noibu.com/mcp`, and call `suggest_connectors` once with only its `directoryUuid` and `keywords: ["store data"]`. Then say "Click **Connect** on the Noibu card to sign in, then tell me when you're done and I'll pick up where we left off." No match or an empty card → no second card; say "Open **Connectors**, find **Noibu**, and click **Connect** to sign in. Tell me when you're done and I'll pick up where we left off." Never mention `/mcp` here.
+  - Claude Code: say "Type `/mcp`, choose **plugin:noibu:noibu**, and select **Authenticate** to open the Noibu sign-in page. Tell me when you're done and I'll pick up where we left off."
+  - When they're done, check again. Connected → resume the original request without re-asking. Still not connected → say the tools can take a new session to appear, and stop.
+- **"Start a free trial":** reply only "[Start your free Noibu trial](https://www.noibu.com/free-trial-claude). Once your account is set up, run this again and choose **I have an account**." and stop.
+- **Any other reply:** answer briefly and offer the question again.
+- **Unattended (scheduled run):** no question or card; say "Noibu isn't connected, so this run couldn't read store data. Sign in to Noibu and the next run will work." and stop.
+
+---
 
 - **Proactive** — no specific issue. Scans for highest-value errors and CWV problems, surfaces a prioritized list.
 - **Reactive** — a specific signal is named. Produces a self-contained finding (Summary → Cause → Fix).
@@ -36,10 +59,9 @@ never about the thread.
 
 ## Setup (always runs first)
 
-1. **Noibu MCP** — confirm connected. If not, stop.
-2. **Domain** — UUID → use it. Name only → resolve. Nothing → list and ask. Capture **platform** (Shopify, Magento, etc.).
-3. **Mode + window** — detect mode (see below). Default window: 30 days.
-4. **TodoList** — create with mode-appropriate tasks.
+1. **Domain** — UUID → use it. Name only → resolve. Nothing → list and ask. Capture **platform** (Shopify, Magento, etc.).
+2. **Mode + window** — detect mode (see below). Default window: 30 days.
+3. **TodoList** — create with mode-appropriate tasks.
 
 There is no config file. Connector status is detected at runtime by checking tool availability. Preferences are asked per session.
 

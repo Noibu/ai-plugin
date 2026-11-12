@@ -8,7 +8,7 @@
     {
       "name": "noibu",
       "source": "./src",
-      "description": "Connects Claude to your Noibu store data — session analytics, error diagnosis, checkout analysis, product performance, and more."
+      "description": "Connects Claude to your Noibu store data (bundles the Noibu MCP connector) — session analytics, error diagnosis, checkout analysis, product performance, and more."
     }
   ]
 }
