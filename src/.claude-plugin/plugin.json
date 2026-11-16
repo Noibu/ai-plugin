@@ -1,6 +1,6 @@
 {
   "name": "noibu",
-  "description": "Connects Claude to your Noibu store data — bundles the Noibu MCP connector with skills for session analytics, error diagnosis, checkout analysis, product performance, A/B testing, and more.",
+  "description": "Connects Claude to the Noibu MCP server",
   "author": {
     "name": "Noibu",
     "url": "https://noibu.com"
