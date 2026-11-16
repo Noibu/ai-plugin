@@ -1,6 +1,6 @@
 ---
 name: tech-diagnosis
-description: "Diagnose technical issues and Core Web Vital performance problems using Noibu data, and fix them, drafting a pull request when the code repo is connected. Use when you want to know what's broken across the store, why an error is happening, what's causing errors, the root cause of poor page performance, how to fix a technical issue, why an error rate spiked, or where errors are concentrated. Also use for \"something's broken on my site\", \"my site is slow\", \"customers say a page won't load\", \"is anything broken\", or a bug on the store. Use it even when Noibu isn't connected yet: the skill connects Noibu first."
+description: "Diagnose technical issues and Core Web Vital performance problems using Noibu data, and recommend a fix. Use when you want to know what's broken across the store, why an error is happening, what's causing errors, the root cause of poor page performance, how to fix a technical issue, why an error rate spiked, or where errors are concentrated."
 ---
 
 # Tech Diagnosis

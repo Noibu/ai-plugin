@@ -1,6 +1,6 @@
 ---
 name: product-analysis
-description: "Analyze product and collection performance using Noibu data. Use when you want to know which products are underperforming, what your best-selling product type is, why a product isn't converting, how your collections are performing, which products get views but no sales, or where shoppers drop off in the product funnel. Also use for \"why isn't this product selling\", \"what should I promote\", \"which products should I focus on\". Use it even when Noibu isn't connected yet: the skill connects Noibu first."
+description: "Analyze product and collection performance using Noibu data. Use when you want to know which products are underperforming, what your best-selling product type is, why a product isn't converting, how your collections are performing, which products get views but no sales, or where shoppers drop off in the product funnel."
 ---
 
 # Noibu Product & Collection Performance Analysis

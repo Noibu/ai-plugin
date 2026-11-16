@@ -1,6 +1,6 @@
 ---
 name: "ab-testing"
-description: "Find, build and launch A/B tests on a Noibu-monitored store: ranked test ideas from 30 days of Noibu data and the live site, flag-gated variation code, a pull request or Shopify preview theme, automated QA, and a started test. Use for \"what should we A/B test\", CRO or experiment ideas, building a specific test, implementing a test already found, or taking a Noibu draft test live. Also use for \"how can I improve conversion\" or \"what should we change on the site\". Requires the Noibu MCP connector; use it even when Noibu isn't connected yet: the skill connects Noibu first."
+description: "Find, build and launch A/B tests on a Noibu-monitored store: ranked test ideas from 30 days of Noibu data and the live site, flag-gated variation code, a pull request or Shopify preview theme, automated QA, and a started test. Use for \"what should we A/B test\", CRO or experiment ideas, building a specific test, implementing a test already found, or taking a Noibu draft test live. Requires the Noibu MCP connector."
 ---
 
 # Noibu A/B test (find, pick, build, run)

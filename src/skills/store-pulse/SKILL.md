@@ -1,6 +1,6 @@
 ---
 name: store-pulse
-description: "An instant, at-a-glance read on your store's health from the last 24 hours — with the option to save it as a live Cowork dashboard artifact or schedule a recurring report. Use to check on how the overall store is doing, save a live dashboard, or schedule a recurring summary. Also the default for broad, open-ended questions about the store with no specific area named: \"how's my site doing\", \"how's my store doing\", \"how are things looking\", \"anything I should know about my store\", \"give me a health check\". Use it even when Noibu isn't connected yet: the skill connects Noibu first."
+description: An instant, at-a-glance read on your store's health from the last 24 hours — with the option to save it as a live Cowork dashboard artifact or schedule a recurring report. Use to check on how the overall store is doing, save a live dashboard, or schedule a recurring summary.
 ---
 
 # Store Pulse

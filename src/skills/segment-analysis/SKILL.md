@@ -1,6 +1,6 @@
 ---
 name: segment-analysis
-description: "Analyze segment and traffic performance using Noibu data. Use when you want to know which channels, devices, or countries convert best, how mobile compares to desktop, where your traffic is coming from, which segments are underperforming, or where to find your best and worst converting customer segments. Also use for \"where is my traffic coming from\", \"is my marketing working\", \"which ads or campaigns bring buyers\". Use it even when Noibu isn't connected yet: the skill connects Noibu first."
+description: "Analyze segment and traffic performance using Noibu data. Use when you want to know which channels, devices, or countries convert best, how mobile compares to desktop, where your traffic is coming from, which segments are underperforming, or where to find your best and worst converting customer segments."
 ---
 
 # Noibu Segment Conversion Analysis

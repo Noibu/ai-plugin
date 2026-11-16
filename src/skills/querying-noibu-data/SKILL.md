@@ -1,6 +1,14 @@
 ---
 name: querying-noibu-data
-description: "Load first when the user asks what the Noibu plugin can do, to be walked through it, or how to get started (e.g. \"I have the Noibu plugin. Please walk me through what it can do.\"); answer from its Plugin overview section, not from memory. Also the required reference for calling `noibu_*` tools: field and measure semantics, query constraints (`orderBy`, row caps, unique-measure rule), call metadata (`rationale`, `skill`), domain resolution, and pasted `console.noibu.com` URLs. Loads alongside topical Noibu skills, not instead of them."
+description: >
+    Required reference for calling `noibu_*` tools — field and measure semantics,
+    query constraints (the `orderBy` requirement, row caps,
+    unique-measure rule), the call-metadata argument convention (`rationale`,
+    `skill`), and domain
+    resolution. Also covers parsing of pasted `console.noibu.com` URLs.
+    Loads alongside topical Noibu skills
+    (e.g., `checkout-analysis`, `tech-diagnosis`), not instead of them — they
+    own routing for their respective domains.
 ---
 
 # Noibu MCP routing guide
