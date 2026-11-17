@@ -1,8 +1,8 @@
-# Release reporting: Azure Pipelines (Step 5)
+# Release reporting: Azure Pipelines (Step 6)
 
 You do every step. The user answers the questions in section 2 and approves the merge and the first pipeline run; nothing else.
 
-**Prerequisites (check them yourself):** the Azure DevOps connector from Step 4 works; Claude in Chrome (or the built-in browser) with the user signed in to dev.azure.com; the repo has at least one commit and a default branch (an empty repo has nothing to branch from); the user can create pipelines and the organization has Microsoft-hosted pipeline parallelism.
+**Prerequisites (check them yourself):** the Azure DevOps connector from Step 5 works; Claude in Chrome (or the built-in browser) with the user signed in to dev.azure.com; the repo has at least one commit and a default branch (an empty repo has nothing to branch from); the user can create pipelines and the organization has Microsoft-hosted pipeline parallelism.
 
 Use the **ADO connector** for repo work (read files, create a branch, commit, open the PR). Use the browser only for what the connector can't do, such as creating the pipeline definition. Don't use the git CLI.
 
@@ -14,7 +14,7 @@ Use the domain UUID from Step 2 (the UUID, not the `numId`). Only if missing: re
 
 Ask only for what's missing:
 
-- **Organization, project and repository.** Already chosen in Step 4 → don't ask; otherwise list candidates with the connector and ask.
+- **Organization, project and repository.** Already chosen in Step 5 → don't ask; otherwise list candidates with the connector and ask.
 - **Branch** whose pushes trigger events. Default `main`.
 - **Component name** (e.g. `frontend`, `backend`, `checkout`).
 - **PR or direct commit.** Default PR.
@@ -52,8 +52,8 @@ Validate the YAML with a parser and review the diff. Don't paste the full YAML i
 ## 5. Merge, register the pipeline, verify
 
 1. Share the PR link in one line, then ask with `AskUserQuestion`: "Merge the Noibu release pipeline into <branch>?" options "Merge it for me" / "I'll review and merge it myself".
-   - **Merge it for me** → complete the PR with the connector, subject to branch policies. A required reviewer you can't stand in for → say who needs to approve, record it for Step 7, and continue with Step 6.
-   - **I'll merge it myself** → continue with Step 6 now; re-check in Step 7.
+   - **Merge it for me** → complete the PR with the connector, subject to branch policies. A required reviewer you can't stand in for → say who needs to approve, record it for Step 8, and continue with Step 7.
+   - **I'll merge it myself** → continue with Step 7 now; re-check in Step 8.
 2. Once the file is on the trigger branch, **register the pipeline yourself.** Azure DevOps doesn't run a YAML file until a pipeline definition points at it.
    - Check for an existing definition for this file first (`pipelines_definition` list) so you don't make a duplicate.
    - Create it with the connector's pipeline tools if they support it; otherwise in the browser: **Pipelines → New pipeline → Azure Repos Git →** the repo **→ Existing Azure Pipelines YAML file →** trigger branch and `/noibu-release.yml` **→ Save**.
@@ -66,12 +66,12 @@ Validate the YAML with a parser and review the diff. Don't paste the full YAML i
 
 - Not signed in to dev.azure.com in the browser (needed only for registering the pipeline) → open it and ask the user, in one line, to sign in there; continue when they say so. Never type their credentials.
 - No browser (in Claude Code: Claude in Chrome isn't connected) and the connector's pipeline tools can't create the definition → the PR still goes in; record "Register the Noibu release pipeline for /noibu-release.yml" as a to-do for the user and move on.
-- Missing write or pipeline-creation permission, branch policies blocking the change, or an empty repo → stop this step, say exactly what's blocking and who can fix it, record it for Step 7, and move on. Don't guess or bypass policies.
+- Missing write or pipeline-creation permission, branch policies blocking the change, or an empty repo → stop this step, say exactly what's blocking and who can fix it, record it for Step 8, and move on. Don't guess or bypass policies.
 
 Diagnose and handle these yourself:
 
 | Symptom | Likely cause | What you do |
 |---|---|---|
 | Run never starts | Pipeline not registered, or file not on the trigger branch | Confirm the merge, register the pipeline (section 5) |
-| Run stays queued / parallelism error | No Microsoft-hosted parallelism in the org | Record "ADO admin requests a free parallelism grant or buys a parallel job" for Step 7 |
+| Run stays queued / parallelism error | No Microsoft-hosted parallelism in the org | Record "ADO admin requests a free parallelism grant or buys a parallel job" for Step 8 |
 | Step fails with an HTTP error | Wrong domain UUID or mistyped URL | Fix the UUID and URL in the file |

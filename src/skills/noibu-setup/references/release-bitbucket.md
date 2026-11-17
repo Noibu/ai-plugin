@@ -1,4 +1,4 @@
-# Release reporting: Bitbucket Pipelines (Step 5)
+# Release reporting: Bitbucket Pipelines (Step 6)
 
 Works on **Bitbucket Cloud** only (bitbucket.org). Bitbucket Data Center and Server have no Pipelines: if that's what they run, stop and say so.
 
@@ -14,7 +14,7 @@ Use the domain UUID from Step 2 (the UUID, not the `numId`). Only if missing: re
 
 Ask only for what's missing:
 
-- **Repository** (`workspace/repo-slug`). Already chosen in Step 4 → don't ask.
+- **Repository** (`workspace/repo-slug`). Already chosen in Step 5 → don't ask.
 - **Branch** whose pushes trigger events. Default `main`.
 - **Component name** (e.g. `frontend`, `backend`, `checkout`).
 - **PR or direct commit** to the default branch. Default PR.
@@ -60,12 +60,12 @@ Validate the YAML with a parser, test the script with a commit message full of q
 ## 5. Merge, enable Pipelines, verify
 
 1. Share the PR link in one line, then ask with `AskUserQuestion`: "Merge the Noibu release step into <branch>?" options "Merge it for me" / "I'll review and merge it myself".
-   - **Merge it for me** → merge the PR in the browser, subject to repo protections. A required approval you can't give → say who needs to approve, record it for Step 7, and continue with Step 6.
-   - **I'll merge it myself** → continue with Step 6 now; re-check in Step 7.
+   - **Merge it for me** → merge the PR in the browser, subject to repo protections. A required approval you can't give → say who needs to approve, record it for Step 8, and continue with Step 7.
+   - **I'll merge it myself** → continue with Step 7 now; re-check in Step 8.
 2. Once merged, open the repo's **Pipelines** page in the browser. ("Enable Pipelines" under Repository settings → Pipelines → Settings stays greyed out until a valid file is on the default branch; that's expected.)
-   - Bitbucket asks for **2-step verification** (first pipeline on this account) → one line: "Bitbucket needs 2-step verification on your account before it'll run pipelines. Turn it on in the window I've opened, then tell me when you're done." Open the prompt's page for them. Never change it yourself.
+   - Bitbucket asks for **2-step verification** (first pipeline on this account) → one line: "Bitbucket needs 2-step verification on your account before it'll run pipelines. Turn it on in the window I've opened." Open the prompt's page for them, then one `AskUserQuestion` with "It's turned on" / "Not now" ("Add it to the to-do list"). Never change it yourself. "Not now" → record "Turn on Bitbucket 2-step verification and run the first Noibu pipeline" as a to-do for the user.
    - Then ask "Run the first Noibu pipeline on <branch>?" ("Yes, run it" / "Not now"). On yes, click **Run initial pipeline** (or **Run pipeline**), select the trigger branch, and run it.
-   - Not a repo admin and Pipelines can't be enabled → say who needs to do it and record it for Step 7.
+   - Not a repo admin and Pipelines can't be enabled → say who needs to do it and record it for Step 8.
 3. Watch the run until "Report release to Noibu" finishes.
    - Green → call `noibu_list_releases` for the domain UUID and confirm an entry with the component, status success, title `<workspace>/<repo> release <build number>` and the commit SHA as version. Report it in one line.
    - Red → open the step log, diagnose (wrong UUID or URL, indentation, missing tool in the image), fix through the same PR flow, and re-run.
@@ -74,7 +74,7 @@ Validate the YAML with a parser, test the script with a commit message full of q
 ## Blockers
 
 - Not signed in to Bitbucket in the browser → open bitbucket.org in the browser and ask the user, in one line, to sign in there; continue when they say so. Never type their credentials.
-- Browser control unavailable (in Claude Code: Claude in Chrome isn't connected), no write access, Data Center/Server, or a repository policy blocks the change → stop this step, say exactly what's blocking and who can fix it, record it for Step 7, and move on. Don't guess or bypass protections.
+- Browser control unavailable (in Claude Code: Claude in Chrome isn't connected), no write access, Data Center/Server, or a repository policy blocks the change → stop this step, say exactly what's blocking and who can fix it, record it for Step 8, and move on. Don't guess or bypass protections.
 
 Diagnose and fix these yourself:
 

@@ -1,4 +1,4 @@
-# Release reporting: GitHub Actions (Step 5)
+# Release reporting: GitHub Actions (Step 6)
 
 You do every step. The user answers the questions in section 2 and approves the merge; nothing else.
 
@@ -10,7 +10,7 @@ Use the domain UUID from Step 2. Only if the ledger doesn't have one: resolve it
 
 Ask only for what the ledger doesn't already have, all in one message:
 
-- **Repo** (owner/name). Already chosen in Step 4 → don't ask.
+- **Repo** (owner/name). Already chosen in Step 5 → don't ask.
 - **Branch** that counts as a release. Default `main`.
 - **Component name**: the label every release from this repo will show in Noibu (e.g. `frontend`, `backend`, `checkout`).
 - **PR or direct commit.** Default PR.
@@ -82,8 +82,8 @@ Before inserting it, validate the YAML with a parser and run the script locally 
 ## 5. Merge and verify
 
 1. Share the PR link in one line, then ask with `AskUserQuestion`: "Merge the Noibu release workflow into <branch>?" options "Merge it for me" / "I'll review and merge it myself".
-   - **Merge it for me** → merge the PR in the browser or with the GitHub connector (Cowork), or with `gh pr merge <number> --merge` (Claude Code), subject to branch protection. Protection requires a review you can't give → say who needs to approve, record it for Step 7, and continue with Step 6.
-   - **I'll merge it myself** → continue with Step 6 now, and re-check the PR state in Step 7.
+   - **Merge it for me** → merge the PR in the browser or with the GitHub connector (Cowork), or with `gh pr merge <number> --merge` (Claude Code), subject to branch protection. Protection requires a review you can't give → say who needs to approve, record it for Step 8, and continue with Step 7.
+   - **I'll merge it myself** → continue with Step 7 now, and re-check the PR state in Step 8.
    - **Direct commit** was chosen in section 2 → nothing to merge.
 2. Once merged, the merge push is the first release. Watch the "Noibu release event" run until it finishes (a couple of minutes at most): the repo's **Actions** tab in the browser (Cowork), or `gh run list --workflow "Noibu release event" --limit 1` then `gh run watch <run id>` (Claude Code).
    - Green → call `noibu_list_releases` for the domain UUID and confirm an entry with the component, status success, title `<repo> release <run number>` and the commit SHA as version. Report it in one line.
@@ -93,6 +93,6 @@ Before inserting it, validate the YAML with a parser and run the script locally 
 ## Blockers
 
 - Cowork, not signed in to GitHub in the browser → open github.com/login in the browser and ask the user, in one line, to sign in there; continue when they say so. Never type their credentials.
-- Cowork, no browser available (neither Claude in Chrome nor Claude's built-in browser) → don't fall back to the GitHub connector: it can't create workflow files. Record "Add the Noibu release workflow to <owner/repo>" as a to-do for the user (it can be finished by running the setup again with a browser available), say so in one line, and move on to Step 6.
-- Claude Code, `gh` can't be installed or signed in → record "Add the Noibu release workflow to <owner/repo>" as a to-do for the user, say so in one line, and move on to Step 6.
-- No write access or branch protection blocks the change → stop this step, say exactly what's blocking and who can fix it, record it for Step 7, and move on. Don't work around protections.
+- Cowork, no browser available (neither Claude in Chrome nor Claude's built-in browser) → don't fall back to the GitHub connector: it can't create workflow files. Record "Add the Noibu release workflow to <owner/repo>" as a to-do for the user (it can be finished by running the setup again with a browser available), say so in one line, and move on to Step 7.
+- Claude Code, `gh` can't be installed or signed in → record "Add the Noibu release workflow to <owner/repo>" as a to-do for the user, say so in one line, and move on to Step 7.
+- No write access or branch protection blocks the change → stop this step, say exactly what's blocking and who can fix it, record it for Step 8, and move on. Don't work around protections.
