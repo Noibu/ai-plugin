@@ -180,7 +180,10 @@ Re-check each item live (don't rely on what an earlier step said) and report one
 For a connector confirmed on its card but not loaded in this chat, wake it up once; if it still isn't here, report it as ✅ "connected" and don't re-check it.
 
 - **Shopify** (Shopify domains only): `get-shop-info` returns the matching shop, or connected (confirmed on the card), or say there's no Shopify connector.
-- **Theme changes** (Shopify domains only): the theme-change path from Step 3, re-checked where its tools are here: Shopify connector (`write_themes` + `themeFilesUpsert`; confirmed-on-card → "checked the first time a theme change is made"), Noibu theme tools (`noibu_list_store_themes` lists themes), or none (to-do for their Noibu contact).
+- **Theme changes** (Shopify domains only), by the theme-change path Step 3 recorded:
+  - Shopify connector → ✅ "Theme changes go through Shopify." Re-check `write_themes` + `themeFilesUpsert` only if Shopify's tools are in this chat; confirmed on the card → no check. Don't check or mention Noibu's theme tools: they're only the backup.
+  - Noibu theme tools → ✅ if `noibu_list_store_themes` lists themes.
+  - None → ⚠️ with the to-do for their Noibu contact.
 - **Recurring reports:** Cowork: the Step 4 tasks exist with the right names and times (`list_scheduled_tasks` or `list_triggers`, whichever scheduler Step 4 used). Claude Code: whether they confirmed the reports were scheduled from the Project in Step 7.
 - **Code host:** the proving read for the connected host (`references/connect-codebase.md`) succeeds and the chosen repo is visible, or connected (confirmed on the card) with the repo they named; or the to-do from Step 5.
 - **Release reporting:** the PR or pipeline link, its state (open / merged / registered), and whether `noibu_list_releases` shows a release yet; or the to-do from Step 5 or 6.
