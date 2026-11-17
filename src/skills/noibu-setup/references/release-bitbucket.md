@@ -2,24 +2,33 @@
 
 Works on **Bitbucket Cloud** only (bitbucket.org). Bitbucket Data Center and Server have no Pipelines: if that's what they run, stop and say so.
 
-You do every step. The user answers the questions in section 2, approves the merge and the first pipeline run, and turns on 2-step verification if Bitbucket asks for it (an account security setting you never change); nothing else.
+You do every step. The user's part: signing in if the browser isn't (section 0), one click to confirm the details (section 2), the merge and first pipeline run, and turning on 2-step verification if Bitbucket asks for it (an account security setting you never change). Nothing else.
 
-**Prerequisites (check them yourself):** write access to the repo; the repo has at least one commit and a default branch; Claude in Chrome (or the built-in browser) with the user signed in to bitbucket.org. Work in the browser session. Don't use the Bitbucket API, app passwords, or the git CLI for the change.
+**Prerequisites (check them yourself):** Claude in Chrome (or the built-in browser) signed in to bitbucket.org, then write access to the repo, in that order (section 0); the repo has at least one commit and a default branch. Work in the browser session. Don't use the Bitbucket API, app passwords, or the git CLI for the change.
+
+## 0. Sign-in, then access (before anything else)
+
+Check these in this order, before asking the user anything. Never judge access while signed out: signed out, a public repo shows "Access level: Read" to everyone, which says nothing about the user's real access.
+
+1. **Signed in?** Open `https://bitbucket.org/account/settings/` in the browser. Any signed-in user can open it; signed out, Bitbucket sends you to the Atlassian login page → the sign-in check-in below. Don't use a repo's `/admin` pages for this: they only open for repo admins, so a signed-in user with write access would look signed out.
+2. **Write access?** Only once signed in: open the repo (`https://bitbucket.org/<workspace>/<repo>`) and read the access level it shows. Write or Admin → go on. Read → no write access (Blockers).
+
+**Sign-in check-in:** leave the login page open (if Claude's browser panel is hidden, ask them to bring it up first) and ask one `AskUserQuestion`: "Sign in to Bitbucket in the browser window I've opened." Options "I've signed in" and "Skip for now". "I've signed in" → repeat item 1. "Skip for now" → record "Add the Noibu release step to <workspace/repo>" as a to-do for the user and go to Step 7. Never type their credentials.
 
 ## 1. Domain
 
 Use the domain UUID from Step 2 (the UUID, not the `numId`). Only if missing: resolve with `noibu_get_domain` / `noibu_list_domains`, asking which if several. Never ask the user to look it up.
 
-## 2. Confirm details (one message)
+## 2. Confirm the details (one click)
 
-Ask only for what's missing:
+Work out sensible defaults instead of asking: the repo from Step 5; the trigger branch = the repo's default branch (`main` if you can't tell); the component = `frontend` (or what the business context or repo name suggests, e.g. `checkout`); a pull request. Then one `AskUserQuestion`:
+- header: "Releases"
+- question: "I'll report every push to <branch> in <repo> to Noibu as a <component> release, through a pull request you can review. Each push counts as a successful release, not a verified deploy."
+- options: "Sounds good" ("Set it up") and "Change something" ("Branch, label, or commit directly")
 
-- **Repository** (`workspace/repo-slug`). Already chosen in Step 5 → don't ask.
-- **Branch** whose pushes trigger events. Default `main`.
-- **Component name** (e.g. `frontend`, `backend`, `checkout`).
-- **PR or direct commit** to the default branch. Default PR.
+"Sounds good" → go ahead with no more questions. "Change something" → ask only for what they want changed, in one message, then go ahead.
 
-Explain briefly that this reports every push to the branch as a successful release; it doesn't wait for or verify a deployment. If they want deployment-based reporting instead, clarify which deployment pipeline first. Once they answer, proceed without another confirmation.
+If, under "Change something", they want deployment-based reporting instead of every push, clarify which deployment pipeline first.
 
 ## 3. Build and validate the pipeline
 
@@ -73,7 +82,7 @@ Validate the YAML with a parser, test the script with a commit message full of q
 
 ## Blockers
 
-- Not signed in to Bitbucket in the browser → open bitbucket.org in the browser and ask the user, in one line, to sign in there; continue when they say so. Never type their credentials.
+- Not signed in to Bitbucket in the browser → section 0's sign-in check-in. Never type their credentials.
 - Browser control unavailable (in Claude Code: Claude in Chrome isn't connected), no write access, Data Center/Server, or a repository policy blocks the change → stop this step, say exactly what's blocking and who can fix it, record it for Step 8, and move on. Don't guess or bypass protections.
 
 Diagnose and fix these yourself:

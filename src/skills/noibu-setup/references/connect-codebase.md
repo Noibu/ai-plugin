@@ -38,7 +38,7 @@ Before asking the user anything, look for it: repo URLs in the business context,
    - No browser available → record "Install the Claude GitHub App on <owner/repo>" as a to-do for the user and continue with what the connector can read.
 4. Re-run the proving read and confirm in one line ("GitHub connected as <login>, and I can see <owner/repo>.").
 
-**GitHub connector missing from the registry** (Cowork): record "Connect GitHub to Claude" as a to-do for the user (Step 8) and say so in one line. Step 6 can still run, because the GitHub release workflow is added in the browser; ask for the repo as `owner/name` in Step 6's question batch.
+**GitHub connector missing from the registry** (Cowork): record "Connect GitHub to Claude" as a to-do for the user (Step 8) and say so in one line. Step 6 can still run, because the GitHub release workflow is added in the browser; pick the repo as SKILL.md Step 5 item 4 does for a connector that isn't loaded (likely repos, or typed as `owner/name`).
 
 ---
 

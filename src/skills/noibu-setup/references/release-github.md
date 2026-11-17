@@ -1,21 +1,30 @@
 # Release reporting: GitHub Actions (Step 6)
 
-You do every step. The user answers the questions in section 2 and approves the merge; nothing else.
+You do every step. The user's part: signing in if the browser isn't (section 0), one click to confirm the details (section 2), and the merge. Nothing else.
+
+## 0. Sign-in, then access (before anything else)
+
+Check these in this order, before asking the user anything. Never judge access while signed out: a signed-out visitor can still view a public repo, so everyone looks like they only have read access.
+
+- **Claude Code:** `gh auth status` already passed in Step 5. Check write access with `gh api repos/<owner/repo> --jq .permissions.push`: `true` → go on; `false` → no write access (Blockers).
+- **Cowork:**
+  1. **Signed in?** Open `https://github.com/settings/profile` in the browser. Any signed-in user can open it; signed out, GitHub sends you to its login page → the sign-in check-in below.
+  2. **Write access?** Only once signed in: open `https://github.com/<owner/repo>/new/<default branch>`. The new-file editor opens → write access; this is also the page section 3 uses. "You need to fork this repository", or a 404 on a private repo → no write access (Blockers).
+
+**Sign-in check-in:** leave the login page open (if Claude's browser panel is hidden, ask them to bring it up first) and ask one `AskUserQuestion`: "Sign in to GitHub in the browser window I've opened." Options "I've signed in" and "Skip for now". "I've signed in" → repeat item 1. "Skip for now" → record "Add the Noibu release workflow to <owner/repo>" as a to-do for the user and go to Step 7. Never type their credentials.
 
 ## 1. Domain
 
 Use the domain UUID from Step 2. Only if the ledger doesn't have one: resolve it with the Noibu tools (`noibu_get_domain`, falling back to `noibu_list_domains`), and if there's more than one, ask which. Use the **UUID**, not the `numId`. Never ask the user to look it up.
 
-## 2. Questions (one message)
+## 2. Confirm the details (one click)
 
-Ask only for what the ledger doesn't already have, all in one message:
+Work out sensible defaults instead of asking: the repo from Step 5; the trigger branch = the repo's default branch (`main` if you can't tell); the component = `frontend` (or what the business context or repo name suggests, e.g. `checkout`); a pull request. Then one `AskUserQuestion`:
+- header: "Releases"
+- question: "I'll report every push to <branch> in <repo> to Noibu as a <component> release, through a pull request you can review. Each push counts as a successful release, not a verified deploy."
+- options: "Sounds good" ("Set it up") and "Change something" ("Branch, label, or commit directly")
 
-- **Repo** (owner/name). Already chosen in Step 5 → don't ask.
-- **Branch** that counts as a release. Default `main`.
-- **Component name**: the label every release from this repo will show in Noibu (e.g. `frontend`, `backend`, `checkout`).
-- **PR or direct commit.** Default PR.
-
-In the same message, say that every push to that branch is reported as a successful release, not a verified deploy. Once they answer, go ahead without another confirmation.
+"Sounds good" → go ahead with no more questions. "Change something" → ask only for what they want changed, in one message, then go ahead.
 
 ## 3. Add the workflow
 
@@ -92,7 +101,7 @@ Before inserting it, validate the YAML with a parser and run the script locally 
 
 ## Blockers
 
-- Cowork, not signed in to GitHub in the browser → open github.com/login in the browser and ask the user, in one line, to sign in there; continue when they say so. Never type their credentials.
+- Cowork, not signed in to GitHub in the browser → section 0's sign-in check-in. Never type their credentials.
 - Cowork, no browser available (neither Claude in Chrome nor Claude's built-in browser) → don't fall back to the GitHub connector: it can't create workflow files. Record "Add the Noibu release workflow to <owner/repo>" as a to-do for the user (it can be finished by running the setup again with a browser available), say so in one line, and move on to Step 7.
 - Claude Code, `gh` can't be installed or signed in → record "Add the Noibu release workflow to <owner/repo>" as a to-do for the user, say so in one line, and move on to Step 7.
 - No write access or branch protection blocks the change → stop this step, say exactly what's blocking and who can fix it, record it for Step 8, and move on. Don't work around protections.

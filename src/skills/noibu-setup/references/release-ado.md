@@ -1,25 +1,34 @@
 # Release reporting: Azure Pipelines (Step 6)
 
-You do every step. The user answers the questions in section 2 and approves the merge and the first pipeline run; nothing else.
+You do every step. The user's part: signing in if the browser isn't (section 0), one click to confirm the details (section 2), and the merge and first pipeline run. Nothing else.
 
 **Prerequisites (check them yourself):** the Azure DevOps connector from Step 5 works; Claude in Chrome (or the built-in browser) with the user signed in to dev.azure.com; the repo has at least one commit and a default branch (an empty repo has nothing to branch from); the user can create pipelines and the organization has Microsoft-hosted pipeline parallelism.
 
 Use the **ADO connector** for repo work (read files, create a branch, commit, open the PR). Use the browser only for what the connector can't do, such as creating the pipeline definition. Don't use the git CLI.
 
+## 0. Sign-in, then access (before anything else)
+
+Check these in this order, before asking the user anything, so any sign-in happens once, up front.
+
+1. **Signed in to dev.azure.com in the browser?** (Needed for registering the pipeline.) Open `https://dev.azure.com/<org>`. Signed in → their organization opens. Signed out → it sends you to the Microsoft sign-in page → the sign-in check-in below. No browser at all → carry on; the pipeline registration falls back as Blockers says.
+2. **Write access?** Repo work goes through the ADO connector, which already signed in with their Microsoft account in Step 5. Its first write (creating the branch in section 4) is the access check: a permission error there → no write access (Blockers). Never judge access from a signed-out browser page.
+
+**Sign-in check-in:** leave the login page open (if Claude's browser panel is hidden, ask them to bring it up first) and ask one `AskUserQuestion`: "Sign in to Azure DevOps in the browser window I've opened." Options "I've signed in" and "Skip for now". "I've signed in" → repeat item 1. "Skip for now" → record "Register the Noibu release pipeline for /noibu-release.yml" as a to-do for the user and go to Step 7. Never type their credentials.
+
 ## 1. Domain
 
 Use the domain UUID from Step 2 (the UUID, not the `numId`). Only if missing: resolve with `noibu_get_domain` / `noibu_list_domains`, asking which if several.
 
-## 2. Confirm details (one message)
+## 2. Confirm the details (one click)
 
-Ask only for what's missing:
+Work out sensible defaults instead of asking: the repo from Step 5; the trigger branch = the repo's default branch (`main` if you can't tell); the component = `frontend` (or what the business context or repo name suggests, e.g. `checkout`); a pull request. Then one `AskUserQuestion`:
+- header: "Releases"
+- question: "I'll report every push to <branch> in <repo> to Noibu as a <component> release, through a pull request you can review. Each push counts as a successful release, not a verified deploy."
+- options: "Sounds good" ("Set it up") and "Change something" ("Branch, label, or commit directly")
 
-- **Organization, project and repository.** Already chosen in Step 5 → don't ask; otherwise list candidates with the connector and ask.
-- **Branch** whose pushes trigger events. Default `main`.
-- **Component name** (e.g. `frontend`, `backend`, `checkout`).
-- **PR or direct commit.** Default PR.
+"Sounds good" → go ahead with no more questions. "Change something" → ask only for what they want changed, in one message, then go ahead.
 
-Explain that this reports every push to the branch as a successful release, without verifying a deployment. If they want deployment-based reporting (classic Release pipelines or YAML deployment stages), ask which pipeline and stage, place the webhook step after the final deployment stage instead of on push, and also report status `"failed"` when the deployment fails. Once they answer, proceed without another confirmation.
+If, under "Change something", they want deployment-based reporting (classic Release pipelines or YAML deployment stages), ask which pipeline and stage, place the webhook step after the final deployment stage instead of on push, and also report status `"failed"` when the deployment fails.
 
 ## 3. Build and validate the YAML
 
@@ -64,7 +73,7 @@ Validate the YAML with a parser and review the diff. Don't paste the full YAML i
 
 ## Blockers
 
-- Not signed in to dev.azure.com in the browser (needed only for registering the pipeline) → open it and ask the user, in one line, to sign in there; continue when they say so. Never type their credentials.
+- Not signed in to dev.azure.com in the browser (needed only for registering the pipeline) → section 0's sign-in check-in. Never type their credentials.
 - No browser (in Claude Code: Claude in Chrome isn't connected) and the connector's pipeline tools can't create the definition → the PR still goes in; record "Register the Noibu release pipeline for /noibu-release.yml" as a to-do for the user and move on.
 - Missing write or pipeline-creation permission, branch policies blocking the change, or an empty repo → stop this step, say exactly what's blocking and who can fix it, record it for Step 8, and move on. Don't guess or bypass policies.
 

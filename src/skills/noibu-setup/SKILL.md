@@ -127,11 +127,11 @@ When all tasks exist, confirm in one or two lines: which reports run when (say t
 Release events tell Noibu when code shipped, so errors and conversion changes can be lined up against deploys. Set this up on the code host connected in Step 5. (Step 5 ended with the code host as a to-do → skip this step. The one exception is GitHub without its connector in Cowork: the workflow is added in the browser, so this step still runs. In Claude Code, GitHub runs through `gh`.)
 
 1. **Already set up?** Check the repo for an existing Noibu release step (`.github/workflows/*` mentioning `webhook.noibu.com`, `bitbucket-pipelines.yml`, or an Azure pipeline YAML with the same URL) and call `noibu_list_releases` for the domain UUID. If a workflow exists and releases are arriving, say so in one line and go to Step 7.
-2. **Run the host's reference end to end yourself**, and only that one. The user answers its one question batch and approves the merge and first run; you write the file, open the PR, register or enable the pipeline, run it, and confirm the release reached Noibu.
+2. **Run the host's reference end to end yourself**, and only that one. The user signs in to the host in the browser if it isn't already (checked first, before access), confirms the proposed details with one click, and approves the merge and first run; you write the file, open the PR, register or enable the pipeline, run it, and confirm the release reached Noibu.
    - GitHub → `references/release-github.md`
    - Bitbucket → `references/release-bitbucket.md`
    - Azure DevOps → `references/release-ado.md`
-3. The domain is already resolved (Step 2) and the repo is already chosen (Step 5): reuse them from the ledger instead of asking again. Ask only for what's still missing (branch, component name, PR or direct commit).
+3. The domain is already resolved (Step 2) and the repo is already chosen (Step 5): reuse them from the ledger instead of asking again. The branch, component name and PR are proposed as defaults and confirmed with one click (section 2 of the host's reference).
 4. Record the PR (or pipeline) link, whether a release has reached Noibu, and anything still waiting on someone else (a required reviewer, an admin) for Step 8.
 
 ## Step 7 · Set up the business context and the Noibu Project
