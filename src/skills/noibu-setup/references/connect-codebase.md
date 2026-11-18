@@ -61,7 +61,7 @@ Bitbucket connects through the **Atlassian** connector. Say so in the same line 
 
 Azure DevOps has no hosted connector. It runs as a local MCP server (`@azure-devops/mcp`) that signs in with the user's Microsoft account, so it only sees what their account sees, and it can't delete anything. How it's installed depends on the client:
 
-- **Cowork:** the server has to be added to the Claude desktop app's config file on the user's computer, which Cowork can't reach. So the install runs in the desktop app's **Code tab**: you give the user the install prompt to copy and paste there; then they restart Claude and come back to this chat (steps 3–5).
+- **Cowork:** the server has to be added to the Claude desktop app's config file on the user's computer, which Cowork can't reach. So the install runs in the desktop app's **Code tab**: you give the user the install prompt to copy and paste there; then they restart Claude and come back to this chat (steps 4–5).
 - **Claude Code:** you add the server to Claude Code yourself (step 3, "In Claude Code").
 
 1. **Already connected?** Run the proving read. Passes → go to step 6.
@@ -72,24 +72,20 @@ Azure DevOps has no hosted connector. It runs as a local MCP server (`@azure-dev
    - Their pasted link (the type-your-own field) → read the organization, project and repo from it (`dev.azure.com/<org>/<project>/_git/<repo>`; spaces show as `%20`). "I don't have the link" → record "Connect Azure DevOps (needs the project link)" as a to-do for the user, skip Step 6, and go to Step 7. "It's not on Azure DevOps" → ask the code-host question again (`references/cards.md`).
 
    The name contains only letters, numbers and hyphens and is **case-sensitive**: keep its casing. Confirm it back in one line and record it.
-3. **In Claude Code:** do this instead of steps 4–5.
+3. **In Claude Code:** do this, then go to step 6 (steps 4–5 are for Cowork).
    - Run `node -v`. v20+ → continue. Missing or older → ask with `AskUserQuestion` "Azure DevOps needs Node.js 20 or later. Install it now?" ("Yes, install Node.js" / "Not now"). On yes, install the LTS release yourself (`brew install node` on Mac when Homebrew exists; `winget install OpenJS.NodeJS.LTS` on Windows; otherwise the official installer from nodejs.org, which the user approves). Re-check `node -v`. "Not now" → record "Install Node.js 20+" as a to-do, skip Step 6, and go to Step 7.
    - Check `claude mcp list` for an existing `ado` entry; none → run `claude mcp add ado -- npx -y @azure-devops/mcp <org>`.
    - The new server loads only after a restart. One line: "Restart Claude Code so the new connection loads (in a terminal: `claude --continue`; in the desktop Code tab: quit Claude fully and reopen this session), then type **done** and we'll pick up right here." When they're back, go to step 6.
 
-   **In Cowork, ask how to install** with `AskUserQuestion`:
-   - header: "Azure DevOps"
-   - question: "Azure DevOps connects through a small add-on that Claude Code installs on your computer. Can you open Claude Code (the Code tab in the Claude desktop app)?"
-   - options: "Open in Claude Code" ("I'll give you a prompt to paste there") and "I don't have Claude Code" ("Try the install from this chat instead")
-4. **"Open in Claude Code": hand off with a prompt to paste.** No link: a chat doesn't make `claude://` links clickable.
+4. **In Cowork: hand off with a prompt to paste.** Don't ask first whether they have Claude Code: go straight to the prompt. No link either: a chat doesn't make `claude://` links clickable.
    - Fill `<ORG>` in the **Code tab install prompt** below. Keep everything else exactly as written.
    - Reply with exactly this:
 
-     "Copy the prompt below (use the copy button on the box), then open the **Code** tab in the Claude desktop app, start a new session, paste it and press send. Approve what it asks. When it's done it'll ask you to quit Claude and reopen this chat; come back here and type **done**."
+     "Copy the prompt below (use the copy button on the box), then open the **Code** tab in the Claude desktop app, start a new session, paste it and press send. Approve what it asks. When it's done it'll ask you to quit Claude and reopen this chat; come back here and type **done**. If you don't have the Code tab, type **skip** and I'll add it to your to-do list."
 
      followed by the filled prompt in one fenced code block.
    - Wait. Don't run anything else for ADO until they're back.
-5. **"I don't have Claude Code": try from this chat.** Edit the config yourself, exactly as steps 2–6 of the install prompt describe, only if this session can actually read and write that file on the user's computer. If it can't (the file isn't reachable from here, writing is blocked, or Node can't be checked), say in one line that Azure DevOps needs Claude Code to finish its setup, record "Connect Azure DevOps (needs Claude Code, or help from their Noibu contact)" as a to-do for the user, skip Step 6, and go to Step 7. If the edit worked, ask them in one line to quit Claude fully (Cmd+Q, or Quit from the tray on Windows), reopen it, come back to this chat and type **done**.
+5. **They type "skip"** (or say they don't have Claude Code or the Code tab): record "Connect Azure DevOps (paste the install prompt into Claude Code's Code tab, or ask your Noibu contact)" as a to-do for the user, skip Step 6, and go to Step 7. Don't try to edit the desktop app's config from this chat: Cowork can't reach it.
 6. **They're back ("done").** Re-run the proving read (both clients). Calling `core_list_projects` opens the Microsoft sign-in, which the user approves. Then confirm the organization, project and repo in one line. The ledger from before the restart is still in this chat; carry on without re-asking anything.
 
 ### Code tab install prompt (Cowork route)
