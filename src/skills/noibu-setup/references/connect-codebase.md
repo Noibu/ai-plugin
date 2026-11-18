@@ -61,11 +61,17 @@ Bitbucket connects through the **Atlassian** connector. Say so in the same line 
 
 Azure DevOps has no hosted connector. It runs as a local MCP server (`@azure-devops/mcp`) that signs in with the user's Microsoft account, so it only sees what their account sees, and it can't delete anything. How it's installed depends on the client:
 
-- **Cowork:** the server has to be added to the Claude desktop app's config file on the user's computer, which Cowork can't reach. So the install runs in the desktop app's **Code tab**, opened from a link with the install prompt already filled in; then the user restarts Claude and comes back to this chat (steps 3–5).
+- **Cowork:** the server has to be added to the Claude desktop app's config file on the user's computer, which Cowork can't reach. So the install runs in the desktop app's **Code tab**: you give the user the install prompt to copy and paste there; then they restart Claude and come back to this chat (steps 3–5).
 - **Claude Code:** you add the server to Claude Code yourself (step 3, "In Claude Code").
 
 1. **Already connected?** Run the proving read. Passes → go to step 6.
-2. **Organization name.** Find an ADO URL (business context, a git remote, earlier in the chat): `dev.azure.com/<org>/...` → the first path segment; `<org>.visualstudio.com/...` → the subdomain. Only if none is found, ask: "What's the link to your Azure DevOps project?" The name contains only letters, numbers and hyphens and is **case-sensitive**: keep its casing. Confirm it back in one line and record it.
+2. **Organization name.** Find an ADO URL (business context, a git remote, earlier in the chat): `dev.azure.com/<org>/...` → the first path segment; `<org>.visualstudio.com/...` → the subdomain. Only if none is found, ask with `AskUserQuestion` so they can paste it straight into the question box:
+   - header: "Azure DevOps"
+   - question: "Paste the link to your Azure DevOps project or repo in the box below. It starts with dev.azure.com."
+   - options: "I don't have the link" ("Note it and keep going") and "It's not on Azure DevOps" ("Pick a different place")
+   - Their pasted link (the type-your-own field) → read the organization, project and repo from it (`dev.azure.com/<org>/<project>/_git/<repo>`; spaces show as `%20`). "I don't have the link" → record "Connect Azure DevOps (needs the project link)" as a to-do for the user, skip Step 6, and go to Step 7. "It's not on Azure DevOps" → ask the code-host question again (`references/cards.md`).
+
+   The name contains only letters, numbers and hyphens and is **case-sensitive**: keep its casing. Confirm it back in one line and record it.
 3. **In Claude Code:** do this instead of steps 4–5.
    - Run `node -v`. v20+ → continue. Missing or older → ask with `AskUserQuestion` "Azure DevOps needs Node.js 20 or later. Install it now?" ("Yes, install Node.js" / "Not now"). On yes, install the LTS release yourself (`brew install node` on Mac when Homebrew exists; `winget install OpenJS.NodeJS.LTS` on Windows; otherwise the official installer from nodejs.org, which the user approves). Re-check `node -v`. "Not now" → record "Install Node.js 20+" as a to-do, skip Step 6, and go to Step 7.
    - Check `claude mcp list` for an existing `ado` entry; none → run `claude mcp add ado -- npx -y @azure-devops/mcp <org>`.
@@ -74,17 +80,14 @@ Azure DevOps has no hosted connector. It runs as a local MCP server (`@azure-dev
    **In Cowork, ask how to install** with `AskUserQuestion`:
    - header: "Azure DevOps"
    - question: "Azure DevOps connects through a small add-on that Claude Code installs on your computer. Can you open Claude Code (the Code tab in the Claude desktop app)?"
-   - options: "Open in Claude Code" ("I'll give you a link that opens it with everything filled in") and "I don't have Claude Code" ("Try the install from this chat instead")
-4. **"Open in Claude Code": build the link and hand off.**
+   - options: "Open in Claude Code" ("I'll give you a prompt to paste there") and "I don't have Claude Code" ("Try the install from this chat instead")
+4. **"Open in Claude Code": hand off with a prompt to paste.** No link: a chat doesn't make `claude://` links clickable.
    - Fill `<ORG>` in the **Code tab install prompt** below. Keep everything else exactly as written.
-   - URL-encode the whole filled prompt with your shell (for example `python3 -c 'import sys,urllib.parse;print("claude://code/new?q="+urllib.parse.quote(sys.stdin.read(),safe=""))'` with the prompt on stdin). Never hand-encode it.
-   - Reply with exactly this, with the link filled in:
+   - Reply with exactly this:
 
-     "[**Open in Claude Code**](<the claude://code/new?q=… link>) — press send there and approve what it asks. When it's done it'll ask you to quit Claude and reopen this chat. Come back here and type **done**.
+     "Copy the prompt below (use the copy button on the box), then open the **Code** tab in the Claude desktop app, start a new session, paste it and press send. Approve what it asks. When it's done it'll ask you to quit Claude and reopen this chat; come back here and type **done**."
 
-     If the link doesn't open, copy this into a new session in the Code tab:"
-
-     followed by the filled prompt in one fenced code block, unencoded.
+     followed by the filled prompt in one fenced code block.
    - Wait. Don't run anything else for ADO until they're back.
 5. **"I don't have Claude Code": try from this chat.** Edit the config yourself, exactly as steps 2–6 of the install prompt describe, only if this session can actually read and write that file on the user's computer. If it can't (the file isn't reachable from here, writing is blocked, or Node can't be checked), say in one line that Azure DevOps needs Claude Code to finish its setup, record "Connect Azure DevOps (needs Claude Code, or help from their Noibu contact)" as a to-do for the user, skip Step 6, and go to Step 7. If the edit worked, ask them in one line to quit Claude fully (Cmd+Q, or Quit from the tray on Windows), reopen it, come back to this chat and type **done**.
 6. **They're back ("done").** Re-run the proving read (both clients). Calling `core_list_projects` opens the Microsoft sign-in, which the user approves. Then confirm the organization, project and repo in one line. The ledger from before the restart is still in this chat; carry on without re-asking anything.
@@ -109,11 +112,10 @@ Azure DevOps organization: <ORG>  (case-sensitive: use exactly this)
 
 | Symptom | What you do |
 |---|---|
-| The link doesn't open Claude Code | They copy the prompt from the code block into a new Code tab session. |
 | Claude Code reports Node can't be installed | Record "Install Node.js 20+ (their IT may need to)" as a to-do; skip Step 6. |
 | Back in Claude Code, no ADO tools after the restart | Check `claude mcp list`; no `ado` entry → add it again (step 3, "In Claude Code") and restart with `claude --continue`. |
-| Back in Cowork, no ADO tools after the restart | Ask whether they quit Claude fully (not just closed the window). Still missing → hand off again with the same link; Claude Code's step 4 finds an existing entry and the restart is what's left. |
+| Back in Cowork, no ADO tools after the restart | Ask whether they quit Claude fully (not just closed the window). Still missing → hand off again with the same prompt; Claude Code's step 4 finds an existing entry and the restart is what's left. |
 | Can see projects but no repos | Their access level is Stakeholder. Record "ADO admin changes <user> to Basic (Organization settings → Users)" for Step 8. |
 | 403 / "not authorized" | Wrong Microsoft account. Ask them to sign out of the ADO prompt and sign in with the account that has access. |
-| "Failed to find api location for area" | The org name is wrong (case, or a URL instead of the name). Confirm the right name with them, then hand off again with the corrected org, adding this line to the end of the prompt before encoding: "The existing "ado" entry has the wrong organization name: in step 4, replace that entry instead of keeping it." In Claude Code: `claude mcp remove ado`, add it again with the right name, and restart with `claude --continue`. |
+| "Failed to find api location for area" | The org name is wrong (case, or a URL instead of the name). Confirm the right name with them, then hand off again with the corrected org, adding this line to the end of the prompt: "The existing "ado" entry has the wrong organization name: in step 4, replace that entry instead of keeping it." In Claude Code: `claude mcp remove ado`, add it again with the right name, and restart with `claude --continue`. |
 | Server fails to start | Usually Node isn't found. Cowork: hand off again so the Code tab can check Node and the config entry, then restart. Claude Code: check `node -v` and the `ado` entry in `claude mcp list`, fix, and restart with `claude --continue`. |
